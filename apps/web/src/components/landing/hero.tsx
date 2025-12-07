@@ -6,6 +6,7 @@ import { BrandSelector } from "@/components/brands/brand-selector";
 import { ChatOptions } from "@/components/chat/chat-options";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useScribeChat } from "@/hooks/chat";
 
 interface HeroProps {
 	isAuthenticated: boolean;
@@ -19,13 +20,16 @@ export function Hero({ isAuthenticated }: HeroProps) {
 
 	const navigate = useNavigate();
 
+	const { createChat, isCreating } = useScribeChat();
+
 	const handleSendMessage = async () => {
 		if (!isAuthenticated) {
 			navigate({ to: "/signin" });
 			return;
 		}
 		if (input.trim()) {
-			console.log(input);
+			const id = await createChat(input);
+			navigate({ to: "/chat/$id", params: { id } });
 		}
 	};
 
@@ -71,7 +75,7 @@ export function Hero({ isAuthenticated }: HeroProps) {
 										handleSendMessage();
 									}
 								}}
-								// disabled={isCreating}
+								disabled={isCreating}
 							/>
 							<div className="mt-2 flex items-center justify-between px-3 pb-3">
 								<div className="flex items-center gap-2">
@@ -102,7 +106,7 @@ export function Hero({ isAuthenticated }: HeroProps) {
 										size="sm"
 										className="rounded-lg"
 										onClick={handleSendMessage}
-										disabled={!input.trim()}
+										disabled={isCreating || !input.trim()}
 									>
 										Send <ArrowRight className="ml-2 h-4 w-4" />
 									</Button>

@@ -8,6 +8,13 @@
 			"when": 1765106294432,
 			"tag": "0000_odd_yellowjacket",
 			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1765120314892,
+			"tag": "0001_special_lifeguard",
+			"breakpoints": true
 		}
 	]
 }

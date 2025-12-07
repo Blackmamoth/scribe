@@ -1,9 +1,9 @@
+import type { UIMessage } from "@tanstack/ai-react";
 import { useEffect, useRef } from "react";
-import type { Message } from "@/types/chat";
 import { ChatMessage } from "./chat-message";
 
 interface ChatListProps {
-	messages: Message[];
+	messages: UIMessage[];
 	isLoading?: boolean;
 	onRestoreVersion?: (code: string) => void;
 }

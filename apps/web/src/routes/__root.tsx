@@ -15,6 +15,7 @@ import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
 import { ThemeProvider } from "next-themes";
+import { WebContainerProvider } from "@/context/webcontainer";
 import { getUser } from "@/functions/get-user";
 
 export interface RouterAppContext {
@@ -76,10 +77,12 @@ function RootDocument() {
 					disableTransitionOnChange
 				>
 					<QueryClientProvider client={queryClient}>
-						<Outlet />
-						<Toaster richColors />
-						<TanStackRouterDevtools position="bottom-left" />
-						<Scripts />
+						<WebContainerProvider>
+							<Outlet />
+							<Toaster richColors />
+							<TanStackRouterDevtools position="bottom-left" />
+							<Scripts />
+						</WebContainerProvider>
 					</QueryClientProvider>
 				</ThemeProvider>
 			</body>

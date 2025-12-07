@@ -1,10 +1,10 @@
+import type { UIMessage } from "@tanstack/ai-react";
 import { Sparkles, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import type { Message } from "@/types/chat";
 
 interface ChatMessageProps {
-	message: Message;
+	message: UIMessage;
 	onRestore?: (code: string) => void;
 }
 
@@ -41,7 +41,11 @@ export function ChatMessage({ message }: ChatMessageProps) {
 							: "bg-muted text-foreground",
 					)}
 				>
-					<div className="whitespace-pre-wrap">{message.content}</div>
+					<div className="whitespace-pre-wrap">
+						{message.parts.map((part) =>
+							part.type === "text" ? part.content : "",
+						)}
+					</div>
 				</div>
 			</div>
 		</div>
