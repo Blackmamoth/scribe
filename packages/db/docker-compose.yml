@@ -2,7 +2,7 @@ name: scribe
 
 services:
   postgres:
-    image: postgres
+    image: postgres:18-alpine
     container_name: scribe-postgres
     environment:
       POSTGRES_DB: scribe
@@ -19,5 +19,23 @@ services:
       retries: 5
     restart: unless-stopped
 
+  redis:
+    image: redis:8-alpine
+    container_name: scribe-redis
+    command: ["redis-server", "--requirepass", "redispassword"]
+    environment:
+      REDIS_PASSWORD: "redispassword"
+    ports:
+      - "6379:6379"
+    volumes:
+      - scribe_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redispassword", "PING"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
 volumes:
   scribe_postgres_data:
+  scribe_redis_data:

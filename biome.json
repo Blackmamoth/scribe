@@ -24,7 +24,8 @@
 			"!**/.alchemy",
 			"!**/.svelte-kit",
 			"!**/wrangler.jsonc",
-			"!**/.source"
+			"!**/.source",
+			"!apps/web/src/components/ui"
 		]
 	},
 	"formatter": {
@@ -36,6 +37,10 @@
 		"enabled": true,
 		"rules": {
 			"recommended": true,
+			"a11y": {
+				"noStaticElementInteractions": "off",
+				"useKeyWithClickEvents": "off"
+			},
 			"correctness": {
 				"useExhaustiveDependencies": "info"
 			},
