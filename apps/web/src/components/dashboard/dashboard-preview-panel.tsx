@@ -2,11 +2,9 @@ import { useEffect } from "react";
 import { EmailPreview } from "@/components/preview/email-preview";
 import { MonacoEditor } from "@/components/preview/monaco-editor";
 import { PreviewHeader } from "@/components/preview/preview-header";
-import { useScribeChat } from "@/hooks/chat";
 import { cn } from "@/lib/utils";
 
 interface DashboardPreviewPanelProps {
-	chatId: string;
 	viewMode: "preview" | "code";
 	setViewMode: (mode: "preview" | "code") => void;
 	device: "desktop" | "tablet" | "mobile";
@@ -17,10 +15,11 @@ interface DashboardPreviewPanelProps {
 	onSendTest: () => void;
 	previewTheme: "light" | "dark";
 	setPreviewTheme: (theme: "light" | "dark") => void;
+	latestEmailCode: string | undefined;
+	isFetchingLatestEmail: boolean;
 }
 
 export function DashboardPreviewPanel({
-	chatId,
 	viewMode,
 	setViewMode,
 	device,
@@ -31,9 +30,9 @@ export function DashboardPreviewPanel({
 	onSendTest,
 	previewTheme,
 	setPreviewTheme,
+	latestEmailCode,
+	isFetchingLatestEmail,
 }: DashboardPreviewPanelProps) {
-	const { latestEmailCode, isFetchingLatestEmail } = useScribeChat(chatId);
-
 	useEffect(() => {
 		if (!isFetchingLatestEmail && latestEmailCode) {
 			setGeneratedCode(latestEmailCode);

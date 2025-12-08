@@ -6,11 +6,13 @@ import { DashboardChatPanel } from "@/components/dashboard/dashboard-chat-panel"
 import { DashboardPreviewPanel } from "@/components/dashboard/dashboard-preview-panel";
 import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { SendTestDialog } from "@/components/preview/send-test-dialog";
+import { ChatPageSkeleton } from "@/components/skeletons/chat-page-skeleton";
 import {
 	ResizableHandle,
 	ResizablePanel,
 	ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { useScribeChat } from "@/hooks/chat";
 
 export const Route = createFileRoute("/chat/$id")({
 	component: RouteComponent,
@@ -24,6 +26,13 @@ export const Route = createFileRoute("/chat/$id")({
 
 function RouteComponent() {
 	const { id } = Route.useParams();
+	const {
+		chatMessages,
+		isFetchingChatMessages,
+		isLoadingChatMessages,
+		latestEmailCode,
+		isFetchingLatestEmail,
+	} = useScribeChat(id);
 
 	const [input, setInput] = useState("");
 	const [isLoading, _setIsLoading] = useState(false);
@@ -61,6 +70,14 @@ function RouteComponent() {
 		toast.success("Exported as email-template.tsx");
 	};
 
+	if (isLoadingChatMessages) {
+		return (
+			<AuthenticatedLayout>
+				<ChatPageSkeleton />
+			</AuthenticatedLayout>
+		);
+	}
+
 	return (
 		<AuthenticatedLayout>
 			<div className="relative flex h-full flex-col">
@@ -94,6 +111,8 @@ function RouteComponent() {
 									setTone={setTone}
 									emailPreset={emailPreset}
 									setEmailPreset={setEmailPreset}
+									chatMessages={chatMessages}
+									isFetchingChatMessages={isFetchingChatMessages}
 								/>
 							</ResizablePanel>
 
@@ -101,7 +120,6 @@ function RouteComponent() {
 
 							<ResizablePanel defaultSize={60} minSize={30}>
 								<DashboardPreviewPanel
-									chatId={id}
 									viewMode={viewMode}
 									setViewMode={setViewMode}
 									device={device}
@@ -112,6 +130,8 @@ function RouteComponent() {
 									onSendTest={() => setIsSendTestOpen(true)}
 									previewTheme={previewTheme}
 									setPreviewTheme={setPreviewTheme}
+									latestEmailCode={latestEmailCode}
+									isFetchingLatestEmail={isFetchingLatestEmail}
 								/>
 							</ResizablePanel>
 						</ResizablePanelGroup>

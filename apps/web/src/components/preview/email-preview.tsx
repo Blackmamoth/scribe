@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useWebContainer } from "@/hooks/webcontainer";
 import { cn } from "@/lib/utils";
@@ -88,6 +89,8 @@ export function EmailPreview({
 	} as const;
 
 	const isBooting = bootStatus !== "ready";
+	const message =
+		bootMessage[bootStatus] ?? (isGenerating ? "Generating preview..." : null);
 
 	return (
 		<div className="flex h-full flex-1 items-center justify-center overflow-hidden bg-muted/30 p-4">
@@ -100,11 +103,13 @@ export function EmailPreview({
 				style={{ width }}
 			>
 				{(isBooting || isGenerating) && (
-					<div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50">
-						<div className="text-gray-500 text-sm">
-							{bootMessage[bootStatus] ??
-								(isGenerating ? "Generating preview..." : null)}
-						</div>
+					<div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white/50 backdrop-blur-sm">
+						<Loader2 className="h-8 w-8 animate-spin text-primary" />
+						{message && (
+							<p className="animate-pulse font-medium text-muted-foreground text-sm">
+								{message}
+							</p>
+						)}
 					</div>
 				)}
 

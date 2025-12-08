@@ -3,7 +3,6 @@ import { processScribeMessages } from "@scribe/core/ai/service/chat";
 import { DefaultChatTransport } from "ai";
 import { type Dispatch, type SetStateAction, useEffect, useMemo } from "react";
 import { ChatList } from "@/components/chat/chat-list";
-import { useScribeChat } from "@/hooks/chat";
 import { DashboardChatInput } from "./dashboard-chat-input";
 
 interface DashboardChatPanelProps {
@@ -19,6 +18,16 @@ interface DashboardChatPanelProps {
 	setTone: (value: string) => void;
 	emailPreset: string;
 	setEmailPreset: (value: string) => void;
+	chatMessages:
+		| {
+				id: string;
+				message: string;
+				role: string;
+				createdAt: Date;
+				chatId: string;
+		  }[]
+		| undefined;
+	isFetchingChatMessages: boolean;
 }
 
 export function DashboardChatPanel({
@@ -34,9 +43,9 @@ export function DashboardChatPanel({
 	setTone,
 	emailPreset,
 	setEmailPreset,
+	chatMessages,
+	isFetchingChatMessages,
 }: DashboardChatPanelProps) {
-	const { chatMessages, isFetchingChatMessages } = useScribeChat(chatId);
-
 	const { messages, setMessages, sendMessage } = useChat({
 		transport: new DefaultChatTransport({
 			api: "/api/chat",

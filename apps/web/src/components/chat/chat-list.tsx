@@ -1,4 +1,5 @@
 import type { ParsedScribeMessage } from "@scribe/core/ai/service/chat";
+import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import { ChatMessage } from "./chat-message";
 
@@ -27,11 +28,14 @@ export function ChatList({
 	return (
 		<div className="flex-1 space-y-4 overflow-y-auto p-4">
 			{messages.map((message) => (
-				<ChatMessage
+				<motion.div
 					key={message.id}
-					message={message}
-					onRestore={onRestoreVersion}
-				/>
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.3 }}
+				>
+					<ChatMessage message={message} onRestore={onRestoreVersion} />
+				</motion.div>
 			))}
 			{isLoading && (
 				<div className="flex w-full gap-4 p-4">

@@ -41,7 +41,9 @@ export function useScribeChat(chatId?: string) {
 		isCreating: createChatMutation.isPending,
 		chatMessages: chatMessages.data,
 		isFetchingChatMessages: chatMessages.isFetching,
+		isLoadingChatMessages: chatMessages.isLoading,
 		latestEmailCode: getEmailCode.data,
 		isFetchingLatestEmail: getEmailCode.isFetching,
+		isLoadingLatestEmail: getEmailCode.isLoading,
 	};
 }

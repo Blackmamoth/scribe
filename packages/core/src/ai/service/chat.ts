@@ -122,7 +122,7 @@ export function processScribeMessages(messages: UIMessage[]): {
 
 		return {
 			id: message.id,
-			role: message.role,
+			role: message.role as "user",
 			rawContent,
 		};
 	});
