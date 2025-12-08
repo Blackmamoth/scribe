@@ -1,5 +1,6 @@
-import { chat } from "@tanstack/ai";
-import { openai } from "@tanstack/ai-openai";
+import { openai } from "@ai-sdk/openai";
+import { generateText } from "ai";
+
 import {
 	buildChatTitleUserPrompt,
 	CHAT_TITLE_SYSTEM_PROMPT,
@@ -9,22 +10,13 @@ export const generateChatTitle = async (message: string) => {
 	const prompt = buildChatTitleUserPrompt(message);
 
 	try {
-		const stream = chat({
-			adapter: openai(),
-			messages: [{ role: "user", content: prompt }],
-			model: "gpt-4o-mini",
-			systemPrompts: [CHAT_TITLE_SYSTEM_PROMPT],
+		const { text } = await generateText({
+			model: openai("gpt-4o-mini"),
+			system: CHAT_TITLE_SYSTEM_PROMPT,
+			prompt: buildChatTitleUserPrompt(prompt),
 		});
 
-		let title = "";
-
-		for await (const chunk of stream) {
-			if (chunk.type === "content") {
-				title += chunk.delta;
-			}
-		}
-
-		return title;
+		return text;
 	} catch (error) {
 		console.error(error);
 		return "";

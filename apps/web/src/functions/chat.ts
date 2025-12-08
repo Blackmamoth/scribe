@@ -11,7 +11,7 @@ export const createChat = createServerFn({ method: "POST" })
 	.inputValidator(createChatSchema)
 	.handler(async ({ context, data }) => {
 		if (!context.session) {
-			throw new Error("unauthenticated");
+			throw new Error("Unauthenticated");
 		}
 
 		const userId = context.session.user.id;
@@ -50,7 +50,7 @@ export const getChatMessages = createServerFn({ method: "POST" })
 	.inputValidator(z.uuid())
 	.handler(async ({ context, data }) => {
 		if (!context.session) {
-			throw new Error("unauthenticated");
+			throw new Error("Unauthenticated");
 		}
 
 		const userId = context.session.user.id;
@@ -70,4 +70,31 @@ export const getChatMessages = createServerFn({ method: "POST" })
 		});
 
 		return chatMessages;
+	});
+
+export const getLatestEmailCode = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.inputValidator(z.uuid())
+	.handler(async ({ context, data }) => {
+		if (!context.session) {
+			throw new Error("Unauthenticated");
+		}
+
+		const userId = context.session.user.id;
+
+		const chat = await db.query.chat.findFirst({
+			where: (chats, { and, eq }) =>
+				and(eq(chats.userId, userId), eq(chats.id, data)),
+		});
+
+		if (!chat) {
+			throw new Error("Invalid chat ID");
+		}
+
+		const emailVersionData = await db.query.emailVersions.findFirst({
+			where: (emailVersions, { eq }) => eq(emailVersions.chatId, chat.id),
+			orderBy: (emailVersions, { desc }) => desc(emailVersions.version),
+		});
+
+		return emailVersionData?.code ?? "";
 	});

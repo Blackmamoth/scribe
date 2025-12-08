@@ -15,7 +15,7 @@ interface DashboardChatInputProps {
 	setTone: (value: string) => void;
 	emailPreset: string;
 	setEmailPreset: (value: string) => void;
-	sendMessage: (content: string) => Promise<void>;
+	sendMessage: (message: { text: string }) => Promise<void>;
 }
 
 export function DashboardChatInput({
@@ -32,7 +32,7 @@ export function DashboardChatInput({
 }: DashboardChatInputProps) {
 	const onSend = () => {
 		if (input.trim()) {
-			sendMessage(input);
+			sendMessage({ text: input });
 		}
 	};
 

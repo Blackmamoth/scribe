@@ -1,5 +1,5 @@
-import { chat, type UIMessage } from "@tanstack/ai";
-import { openai } from "@tanstack/ai-openai";
+import { openai } from "@ai-sdk/openai";
+import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { buildScribeUserPrompt } from "../prompt";
 
 export const handleChat = (
@@ -11,17 +11,14 @@ export const handleChat = (
 		websiteUrl?: string;
 	},
 ) => {
-	const response = chat({
-		adapter: openai(),
-		messages: messages,
-		model: "gpt-4o-mini",
-		systemPrompts: [
-			buildScribeUserPrompt({
-				preset: "Announcement",
-				tone: "Professional",
-				brand,
-			}),
-		],
+	const response = streamText({
+		model: openai("gpt-4o-mini"),
+		messages: convertToModelMessages(messages),
+		system: buildScribeUserPrompt({
+			preset: "Announcement",
+			tone: "Professional",
+			brand,
+		}),
 	});
 
 	return response;
@@ -48,98 +45,85 @@ export function parseScribeResponse(fullText: string) {
 		return text.slice(start + open.length, end).trim();
 	}
 
-	const assistant = extract("assistant");
-	const code = extract("code");
+	const assistant = extract("scribe-reply");
+	const code = extract("scribe-code");
 
 	return { assistant, code };
 }
 
-export type ScribeStreamState = {
-	assistant: string;
+export interface ParsedScribeMessage {
+	reply: string;
 	code: string;
-	mode: "idle" | "assistant" | "code";
-	buffer: string; // holds partial chunk data
-	done: boolean;
-};
+	isComplete: boolean;
+}
 
-export function createScribeParser() {
-	const state: ScribeStreamState = {
-		assistant: "",
-		code: "",
-		mode: "idle",
-		buffer: "",
-		done: false,
-	};
+export function parseScribeStream(content: string): ParsedScribeMessage {
+	let reply = "";
+	let code = "";
+	let isComplete = false;
 
-	const find = (buf: string, tag: string) => buf.indexOf(tag);
+	const replyStartMatch = content.match(/<scribe-reply>/);
+	if (replyStartMatch?.index) {
+		const replyStart = replyStartMatch.index + "<scribe-reply>".length;
+		const replyEndMatch = content.match(/<\/scribe-reply>/);
 
-	function processChunk(rawChunk: string) {
-		if (state.done) return state;
-
-		state.buffer += rawChunk;
-
-		while (true) {
-			// Idle → look for <assistant>
-			if (state.mode === "idle") {
-				const startAssistant = find(state.buffer, "<assistant>");
-				if (startAssistant !== -1) {
-					state.buffer = state.buffer.slice(
-						startAssistant + "<assistant>".length,
-					);
-					state.mode = "assistant";
-					continue;
-				}
-			}
-
-			// Inside assistant block
-			if (state.mode === "assistant") {
-				const endAssistant = find(state.buffer, "</assistant>");
-				if (endAssistant !== -1) {
-					state.assistant += state.buffer.slice(0, endAssistant);
-					state.buffer = state.buffer.slice(
-						endAssistant + "</assistant>".length,
-					);
-					state.mode = "idle";
-					continue;
-				}
-				state.assistant += state.buffer;
-				state.buffer = "";
-				break;
-			}
-
-			// Idle → look for <code>
-			if (state.mode === "idle") {
-				const startCode = find(state.buffer, "<code>");
-				if (startCode !== -1) {
-					state.buffer = state.buffer.slice(startCode + "<code>".length);
-					state.mode = "code";
-					continue;
-				}
-			}
-
-			// Inside code block
-			if (state.mode === "code") {
-				const endCode = find(state.buffer, "</code>");
-				if (endCode !== -1) {
-					state.code += state.buffer.slice(0, endCode);
-					state.buffer = state.buffer.slice(endCode + "</code>".length);
-					state.mode = "idle";
-					state.done = true;
-					break;
-				}
-				state.code += state.buffer;
-				state.buffer = "";
-				break;
-			}
-
-			break;
+		if (replyEndMatch) {
+			reply = content.substring(replyStart, replyEndMatch.index).trim();
+		} else {
+			const codeStartMatch = content.match(/<scribe-code>/);
+			const extractUntil = codeStartMatch?.index
+				? codeStartMatch.index
+				: content.length;
+			reply = content.substring(replyStart, extractUntil).trim();
 		}
+	}
 
-		return state;
+	const codeStartMatch = content.match(/<scribe-code>/);
+	if (codeStartMatch?.index) {
+		const codeStart = codeStartMatch.index + "<scribe-code>".length;
+		const codeEndMatch = content.match(/<\/scribe-code>/);
+
+		if (codeEndMatch) {
+			code = content.substring(codeStart, codeEndMatch.index).trim();
+			isComplete = true;
+		} else {
+			code = content.substring(codeStart).trim();
+		}
 	}
 
 	return {
-		processChunk,
-		getState: () => state,
+		reply,
+		code,
+		isComplete,
 	};
+}
+
+export function processScribeMessages(messages: UIMessage[]): {
+	id: string;
+	role: "user" | "assistant";
+	rawContent: string;
+	parsed?: ParsedScribeMessage;
+}[] {
+	return messages.map((message) => {
+		const rawContent = message.parts
+			.map((part) => (part.type === "text" ? part.text : ""))
+			.join("")
+			.trim();
+
+		if (message.role === "assistant") {
+			const parsed = parseScribeStream(rawContent);
+			return {
+				id: message.id,
+				role: message.role,
+				rawContent,
+				parsed,
+			};
+		}
+
+		return {
+			id: message.id,
+			role: message.role,
+			rawContent,
+		};
+	});
 }

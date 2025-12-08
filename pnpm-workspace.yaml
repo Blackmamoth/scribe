@@ -1,8 +1,8 @@
 packages:
-  - apps/*
-  - packages/*
+    - apps/*
+    - packages/*
 
 catalog:
-  '@tanstack/ai': ^0.0.2
-  better-auth: ^1.4.5
-  dotenv: ^17.2.2
+    ai: ^5.0.108
+    better-auth: ^1.4.5
+    dotenv: ^17.2.2

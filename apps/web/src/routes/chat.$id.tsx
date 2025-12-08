@@ -101,6 +101,7 @@ function RouteComponent() {
 
 							<ResizablePanel defaultSize={60} minSize={30}>
 								<DashboardPreviewPanel
+									chatId={id}
 									viewMode={viewMode}
 									setViewMode={setViewMode}
 									device={device}

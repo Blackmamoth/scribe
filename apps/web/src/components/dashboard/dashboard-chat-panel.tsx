@@ -1,9 +1,7 @@
-import {
-	fetchServerSentEvents,
-	type UIMessage,
-	useChat,
-} from "@tanstack/ai-react";
-import { type Dispatch, type SetStateAction, useEffect } from "react";
+import { type UIMessage, useChat } from "@ai-sdk/react";
+import { processScribeMessages } from "@scribe/core/ai/service/chat";
+import { DefaultChatTransport } from "ai";
+import { type Dispatch, type SetStateAction, useEffect, useMemo } from "react";
 import { ChatList } from "@/components/chat/chat-list";
 import { useScribeChat } from "@/hooks/chat";
 import { DashboardChatInput } from "./dashboard-chat-input";
@@ -40,7 +38,8 @@ export function DashboardChatPanel({
 	const { chatMessages, isFetchingChatMessages } = useScribeChat(chatId);
 
 	const { messages, setMessages, sendMessage } = useChat({
-		connection: fetchServerSentEvents("/api/chat", {
+		transport: new DefaultChatTransport({
+			api: "/api/chat",
 			body: {
 				chatId,
 			},
@@ -50,25 +49,43 @@ export function DashboardChatPanel({
 	useEffect(() => {
 		if (chatMessages?.length && !isFetchingChatMessages) {
 			if (chatMessages.length === 1) {
-				sendMessage(chatMessages[0].message);
+				sendMessage({ text: chatMessages[0].message });
 			} else {
 				setMessages(
 					chatMessages.map(
 						(msg): UIMessage => ({
 							id: msg.id,
-							parts: [{ type: "text", content: msg.message }],
+							parts: [{ type: "text", text: msg.message }],
 							role: msg.role === "user" ? "user" : "assistant",
 						}),
 					),
 				);
 			}
 		}
-	}, [isFetchingChatMessages]);
+	}, [chatMessages, isFetchingChatMessages, sendMessage, setMessages]);
+
+	const displayMessages = useMemo(() => {
+		return processScribeMessages(messages);
+	}, [messages]);
+
+	// Update generated code when assistant message is complete
+	useEffect(() => {
+		// Find the last assistant message
+		const lastMessage = displayMessages[displayMessages.length - 1];
+
+		if (lastMessage?.role === "assistant" && lastMessage.parsed) {
+			const { code } = lastMessage.parsed;
+
+			if (code) {
+				setGeneratedCode(code);
+			}
+		}
+	}, [displayMessages, setGeneratedCode]);
 
 	return (
 		<div className="flex h-full flex-col">
 			<ChatList
-				messages={messages}
+				messages={displayMessages}
 				isLoading={isLoading}
 				onRestoreVersion={setGeneratedCode}
 			/>

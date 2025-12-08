@@ -1,10 +1,15 @@
-import type { UIMessage } from "@tanstack/ai-react";
+import type { ParsedScribeMessage } from "@scribe/core/ai/service/chat";
 import { Sparkles, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 interface ChatMessageProps {
-	message: UIMessage;
+	message: {
+		id: string;
+		role: "user" | "assistant";
+		rawContent: string;
+		parsed?: ParsedScribeMessage;
+	};
 	onRestore?: (code: string) => void;
 }
 
@@ -42,9 +47,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
 					)}
 				>
 					<div className="whitespace-pre-wrap">
-						{message.parts.map((part) =>
-							part.type === "text" ? part.content : "",
-						)}
+						{message?.parsed?.reply || message?.rawContent}
 					</div>
 				</div>
 			</div>

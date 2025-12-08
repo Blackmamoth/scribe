@@ -8,6 +8,7 @@
 		"dev": "vite dev --port=3001 --host"
 	},
 	"dependencies": {
+		"@ai-sdk/react": "^2.0.109",
 		"@fontsource/inter": "^5.2.8",
 		"@monaco-editor/react": "^4.7.0",
 		"@radix-ui/react-avatar": "^1.1.11",
@@ -19,8 +20,6 @@
 		"@scribe/core": "workspace:*",
 		"@scribe/db": "workspace:*",
 		"@tailwindcss/vite": "^4.1.8",
-		"@tanstack/ai": "catalog:",
-		"@tanstack/ai-react": "^0.0.2",
 		"@tanstack/react-form": "^1.23.5",
 		"@tanstack/react-query": "^5.85.5",
 		"@tanstack/react-router": "^1.132.31",
@@ -28,6 +27,7 @@
 		"@tanstack/react-start": "^1.132.31",
 		"@tanstack/router-plugin": "^1.132.31",
 		"@webcontainer/api": "^1.6.1",
+		"ai": "catalog:",
 		"better-auth": "catalog:",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",

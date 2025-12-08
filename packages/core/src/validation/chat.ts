@@ -6,6 +6,11 @@ export const createChatSchema = z.object({
 
 export const chatSchema = z.object({
 	chatId: z.uuid(),
-	// messages: z.array(z.instanceof()),
 	brandId: z.uuid().nullish(),
+});
+
+export const saveChatMessageSchema = z.object({
+	chatId: z.uuid(),
+	userMessage: z.string().min(1, "user message is required"),
+	aiResponse: z.string().min(1, "ai response is required"),
 });

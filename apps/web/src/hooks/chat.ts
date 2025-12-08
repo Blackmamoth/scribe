@@ -1,6 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { createChat, getChatMessages } from "@/functions/chat";
+import {
+	createChat,
+	getChatMessages,
+	getLatestEmailCode,
+} from "@/functions/chat";
 
 export function useScribeChat(chatId?: string) {
 	const createChatMutation = useMutation({
@@ -22,10 +26,22 @@ export function useScribeChat(chatId?: string) {
 		enabled: !!chatId,
 	});
 
+	const getEmailCode = useQuery({
+		queryKey: ["chat", "email_code", chatId],
+		queryFn: async () => {
+			const emailCode = await getLatestEmailCode({ data: chatId || "" });
+
+			return emailCode;
+		},
+		enabled: !!chatId,
+	});
+
 	return {
 		createChat: createChatMutation.mutateAsync,
 		isCreating: createChatMutation.isPending,
 		chatMessages: chatMessages.data,
 		isFetchingChatMessages: chatMessages.isFetching,
+		latestEmailCode: getEmailCode.data,
+		isFetchingLatestEmail: getEmailCode.isFetching,
 	};
 }

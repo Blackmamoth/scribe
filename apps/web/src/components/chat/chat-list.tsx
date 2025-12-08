@@ -1,9 +1,14 @@
-import type { UIMessage } from "@tanstack/ai-react";
+import type { ParsedScribeMessage } from "@scribe/core/ai/service/chat";
 import { useEffect, useRef } from "react";
 import { ChatMessage } from "./chat-message";
 
 interface ChatListProps {
-	messages: UIMessage[];
+	messages: {
+		id: string;
+		role: "user" | "assistant";
+		rawContent: string;
+		parsed?: ParsedScribeMessage;
+	}[];
 	isLoading?: boolean;
 	onRestoreVersion?: (code: string) => void;
 }
