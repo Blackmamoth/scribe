@@ -1,8 +1,14 @@
 import { type UIMessage, useChat } from "@ai-sdk/react";
 import { processScribeMessages } from "@scribe/core/ai/service/chat";
-import type { EmailPreset, EmailTone } from "@scribe/db/types";
+import type { ChatMessage, EmailPreset, EmailTone } from "@scribe/db/types";
 import { DefaultChatTransport } from "ai";
-import { type Dispatch, type SetStateAction, useEffect, useMemo } from "react";
+import {
+	type Dispatch,
+	type SetStateAction,
+	useEffect,
+	useMemo,
+	useRef,
+} from "react";
 import { ChatList } from "@/components/chat/chat-list";
 import { DashboardChatInput } from "./dashboard-chat-input";
 
@@ -12,22 +18,13 @@ interface DashboardChatPanelProps {
 	setGeneratedCode: (code: string) => void;
 	input: string;
 	setInput: (value: string) => void;
-	onKeyDown: (e: React.KeyboardEvent) => void;
 	selectedBrandId: string | null;
 	setSelectedBrandId: Dispatch<SetStateAction<string | null>>;
 	tone: EmailTone;
 	setTone: (value: EmailTone) => void;
 	emailPreset: EmailPreset;
 	setEmailPreset: (value: EmailPreset) => void;
-	chatMessages:
-		| {
-				id: string;
-				message: string;
-				role: string;
-				createdAt: Date;
-				chatId: string;
-		  }[]
-		| undefined;
+	chatMessages?: ChatMessage[];
 	isFetchingChatMessages: boolean;
 }
 
@@ -37,7 +34,6 @@ export function DashboardChatPanel({
 	setGeneratedCode,
 	input,
 	setInput,
-	onKeyDown,
 	selectedBrandId,
 	setSelectedBrandId,
 	tone,
@@ -47,23 +43,57 @@ export function DashboardChatPanel({
 	chatMessages,
 	isFetchingChatMessages,
 }: DashboardChatPanelProps) {
+	const initializedRef = useRef(false);
 	const { messages, setMessages, sendMessage } = useChat({
 		transport: new DefaultChatTransport({
 			api: "/api/chat",
-			body: () => ({
+			body: {
 				chatId,
 				brandId: selectedBrandId,
 				emailTone: tone,
 				emailPreset: emailPreset,
-			}),
+			},
 		}),
 		id: chatId,
 	});
 
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === "Enter" && !e.shiftKey) {
+			e.preventDefault();
+			sendMessage(
+				{ text: input },
+				{
+					body: {
+						chatId,
+						brandId: selectedBrandId,
+						emailTone: tone,
+						emailPreset: emailPreset,
+					},
+				},
+			);
+			setInput("");
+		}
+	};
+
 	useEffect(() => {
-		if (chatMessages?.length && !isFetchingChatMessages) {
+		if (
+			chatMessages?.length &&
+			!isFetchingChatMessages &&
+			!initializedRef.current
+		) {
+			initializedRef.current = true;
 			if (chatMessages.length === 1) {
-				sendMessage({ text: chatMessages[0].message });
+				sendMessage(
+					{ text: chatMessages[0].message },
+					{
+						body: {
+							chatId,
+							brandId: selectedBrandId,
+							emailTone: tone,
+							emailPreset: emailPreset,
+						},
+					},
+				);
 			} else {
 				setMessages(
 					chatMessages.map(
@@ -104,17 +134,15 @@ export function DashboardChatPanel({
 				onRestoreVersion={setGeneratedCode}
 			/>
 			<DashboardChatInput
-				chatId={chatId}
 				input={input}
 				setInput={setInput}
-				onKeyDown={onKeyDown}
+				onKeyDown={handleKeyDown}
 				selectedBrandId={selectedBrandId}
 				setSelectedBrandId={setSelectedBrandId}
 				tone={tone}
 				setTone={setTone}
 				emailPreset={emailPreset}
 				setEmailPreset={setEmailPreset}
-				sendMessage={sendMessage}
 			/>
 		</div>
 	);

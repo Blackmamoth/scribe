@@ -1,28 +1,46 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import type { EmailPreset, EmailTone } from "@scribe/db/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
 	createChat,
-	getChatMessages,
+	getChatSession,
 	getLatestEmailCode,
 	getRecentChats,
 } from "@/functions/chat";
 
 export function useScribeChat(chatId?: string) {
+	const queryClient = useQueryClient();
+
 	const createChatMutation = useMutation({
-		mutationFn: async (prompt: string) => {
-			return await createChat({ data: { prompt } });
+		mutationFn: async ({
+			prompt,
+			brandId,
+			tone,
+			preset,
+		}: {
+			prompt: string;
+			brandId?: string | null;
+			tone?: EmailTone;
+			preset?: EmailPreset;
+		}) => {
+			return await createChat({
+				data: { prompt, brandId, emailTone: tone, emailPreset: preset },
+			});
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["chats"] });
 		},
 		onError: (error) => {
 			toast.error(error.message);
 		},
 	});
 
-	const chatMessages = useQuery({
-		queryKey: ["chat", "messages", chatId],
+	const chatSession = useQuery({
+		queryKey: ["chat", "session", chatId],
 		queryFn: async () => {
-			const messages = await getChatMessages({ data: chatId || "" });
+			const chatSession = await getChatSession({ data: chatId || "" });
 
-			return messages;
+			return chatSession;
 		},
 		enabled: !!chatId,
 	});
@@ -50,9 +68,9 @@ export function useScribeChat(chatId?: string) {
 		isFetchingChats: chats.isFetching,
 		createChat: createChatMutation.mutateAsync,
 		isCreating: createChatMutation.isPending,
-		chatMessages: chatMessages.data,
-		isFetchingChatMessages: chatMessages.isFetching,
-		isLoadingChatMessages: chatMessages.isLoading,
+		chatSession: chatSession.data,
+		isFetchingchatSession: chatSession.isFetching,
+		isLoadingchatSession: chatSession.isLoading,
 		latestEmailCode: getEmailCode.data,
 		isFetchingLatestEmail: getEmailCode.isFetching,
 		isLoadingLatestEmail: getEmailCode.isLoading,

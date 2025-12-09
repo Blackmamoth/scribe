@@ -29,6 +29,9 @@ export const createChat = createServerFn({ method: "POST" })
 				.values({
 					title: chatTitle,
 					userId,
+					brandId: data.brandId,
+					tone: data.emailTone,
+					preset: data.emailPreset,
 				})
 				.returning({ chatId: chat.id });
 
@@ -70,7 +73,7 @@ export const getRecentChats = createServerFn({
 		return chats;
 	});
 
-export const getChatMessages = createServerFn({ method: "POST" })
+export const getChatSession = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator(z.uuid())
 	.handler(async ({ context, data }) => {
@@ -94,7 +97,12 @@ export const getChatMessages = createServerFn({ method: "POST" })
 			orderBy: (messages, { asc }) => asc(messages.createdAt),
 		});
 
-		return chatMessages;
+		return {
+			chatMessages,
+			brandId: chat.brandId,
+			tone: chat.tone,
+			preset: chat.preset,
+		};
 	});
 
 export const getLatestEmailCode = createServerFn({ method: "POST" })

@@ -1,3 +1,4 @@
+import type { EmailPreset, EmailTone } from "@scribe/db/types";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
@@ -15,8 +16,8 @@ interface HeroProps {
 export function Hero({ isAuthenticated }: HeroProps) {
 	const [input, setInput] = useState("");
 	const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
-	const [tone, setTone] = useState("Professional");
-	const [emailPreset, setEmailPreset] = useState("Cold Email");
+	const [tone, setTone] = useState<EmailTone>("professional");
+	const [emailPreset, setEmailPreset] = useState<EmailPreset>("cold_email");
 
 	const navigate = useNavigate();
 
@@ -28,7 +29,13 @@ export function Hero({ isAuthenticated }: HeroProps) {
 			return;
 		}
 		if (input.trim()) {
-			const id = await createChat(input);
+			console.log(input, selectedBrandId, tone, emailPreset);
+			const id = await createChat({
+				prompt: input,
+				brandId: selectedBrandId,
+				tone,
+				preset: emailPreset,
+			});
 			navigate({ to: "/chat/$id", params: { id } });
 		}
 	};

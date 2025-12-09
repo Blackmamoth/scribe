@@ -1,7 +1,7 @@
 import type { EmailPreset, EmailTone } from "@scribe/db/types";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DashboardChatPanel } from "@/components/dashboard/dashboard-chat-panel";
 import { DashboardPreviewPanel } from "@/components/dashboard/dashboard-preview-panel";
@@ -28,9 +28,9 @@ export const Route = createFileRoute("/chat/$id")({
 function RouteComponent() {
 	const { id } = Route.useParams();
 	const {
-		chatMessages,
-		isFetchingChatMessages,
-		isLoadingChatMessages,
+		chatSession,
+		isFetchingchatSession,
+		isLoadingchatSession,
 		latestEmailCode,
 		isFetchingLatestEmail,
 	} = useScribeChat(id);
@@ -51,12 +51,19 @@ function RouteComponent() {
 	const [isSendTestOpen, setIsSendTestOpen] = useState(false);
 	const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
 
-	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === "Enter" && !e.shiftKey) {
-			e.preventDefault();
-			// sendMessage(input);
+	useEffect(() => {
+		if (chatSession?.brandId) {
+			setSelectedBrandId(chatSession.brandId);
 		}
-	};
+
+		if (chatSession?.preset) {
+			setEmailPreset(chatSession.preset);
+		}
+
+		if (chatSession?.tone) {
+			setTone(chatSession.tone);
+		}
+	}, [chatSession?.brandId, chatSession?.preset, chatSession?.tone]);
 
 	const handleExportJsx = () => {
 		const blob = new Blob([generatedCode], { type: "text/plain" });
@@ -71,7 +78,7 @@ function RouteComponent() {
 		toast.success("Exported as email-template.tsx");
 	};
 
-	if (isLoadingChatMessages) {
+	if (isLoadingchatSession) {
 		return (
 			<AuthenticatedLayout>
 				<ChatPageSkeleton />
@@ -105,15 +112,14 @@ function RouteComponent() {
 									setGeneratedCode={setGeneratedCode}
 									input={input}
 									setInput={setInput}
-									onKeyDown={handleKeyDown}
 									selectedBrandId={selectedBrandId}
 									setSelectedBrandId={setSelectedBrandId}
 									tone={tone}
 									setTone={setTone}
 									emailPreset={emailPreset}
 									setEmailPreset={setEmailPreset}
-									chatMessages={chatMessages}
-									isFetchingChatMessages={isFetchingChatMessages}
+									chatMessages={chatSession?.chatMessages}
+									isFetchingChatMessages={isFetchingchatSession}
 								/>
 							</ResizablePanel>
 

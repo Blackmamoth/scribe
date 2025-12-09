@@ -1,6 +1,6 @@
 import { handleChat, parseScribeResponse } from "@scribe/core/ai/service/chat";
 import { chatSchema } from "@scribe/core/validation";
-import { db } from "@scribe/db";
+import { db, eq } from "@scribe/db";
 import { chat, chatMessage, emailVersions } from "@scribe/db/schema/chat";
 import type { Brand, ChatMessage } from "@scribe/db/types";
 import { createFileRoute } from "@tanstack/react-router";
@@ -78,23 +78,23 @@ export const Route = createFileRoute("/api/chat")({
 								.join("");
 							const { assistant, code } = parseScribeResponse(responseText);
 
+							const insertArr: Omit<ChatMessage, "id" | "createdAt">[] = [
+								{ chatId, message: assistant, role: "assistant" },
+							];
+
+							if (shouldSaveUserMessage) {
+								const userMessage = latestUserMessage.parts
+									.map((part) => (part.type === "text" ? part.text : ""))
+									.join("");
+
+								insertArr.unshift({
+									chatId,
+									message: userMessage,
+									role: "user",
+								});
+							}
+
 							await db.transaction(async (tx) => {
-								const insertArr: Omit<ChatMessage, "id" | "createdAt">[] = [
-									{ chatId, message: assistant, role: "assistant" },
-								];
-
-								if (shouldSaveUserMessage) {
-									const userMessage = latestUserMessage.parts
-										.map((part) => (part.type === "text" ? part.text : ""))
-										.join("");
-
-									insertArr.unshift({
-										chatId,
-										message: userMessage,
-										role: "user",
-									});
-								}
-
 								await tx.insert(chatMessage).values(insertArr);
 
 								if (code?.trim()) {
@@ -115,7 +115,29 @@ export const Route = createFileRoute("/api/chat")({
 										version,
 									});
 
-									await tx.update(chat).set({ updatedAt: new Date() });
+									const chatUpdateDetails: Partial<typeof chat.$inferInsert> = {
+										updatedAt: new Date(),
+									};
+
+									if (
+										data.emailPreset &&
+										data.emailPreset !== chatExists.preset
+									) {
+										chatUpdateDetails.preset = data.emailPreset;
+									}
+
+									if (data.emailTone && data.emailTone !== chatExists.tone) {
+										chatUpdateDetails.tone = data.emailTone;
+									}
+
+									if (data.brandId && data.brandId !== chatExists.brandId) {
+										chatUpdateDetails.brandId = data.brandId;
+									}
+
+									await tx
+										.update(chat)
+										.set(chatUpdateDetails)
+										.where(eq(chat.id, chatId));
 								}
 							});
 						},

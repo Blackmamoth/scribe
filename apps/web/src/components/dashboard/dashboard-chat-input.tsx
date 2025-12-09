@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 interface DashboardChatInputProps {
-	chatId: string;
 	input: string;
 	setInput: (value: string) => void;
 	onKeyDown: (e: React.KeyboardEvent) => void;
@@ -17,14 +16,9 @@ interface DashboardChatInputProps {
 	setTone: (value: EmailTone) => void;
 	emailPreset: EmailPreset;
 	setEmailPreset: (value: EmailPreset) => void;
-	sendMessage: (
-		message: { text: string },
-		data?: { body?: Record<string, unknown> },
-	) => Promise<void>;
 }
 
 export function DashboardChatInput({
-	chatId,
 	input,
 	setInput,
 	onKeyDown,
@@ -34,24 +28,7 @@ export function DashboardChatInput({
 	setTone,
 	emailPreset,
 	setEmailPreset,
-	sendMessage,
 }: DashboardChatInputProps) {
-	const onSend = () => {
-		if (input.trim()) {
-			sendMessage(
-				{ text: input },
-				{
-					body: {
-						chatId,
-						brandId: selectedBrandId,
-						emailTone: tone,
-						emailPreset: emailPreset,
-					},
-				},
-			);
-		}
-	};
-
 	return (
 		<div className="border-t bg-background p-4">
 			<div className="relative rounded-xl border bg-background p-2 shadow-sm ring-1 ring-border transition-all focus-within:ring-2 focus-within:ring-primary/30">
@@ -83,9 +60,6 @@ export function DashboardChatInput({
 							</kbd>{" "}
 							to send
 						</div>
-						<Button size="sm" className="rounded-lg" onClick={onSend}>
-							Send <ArrowRight className="ml-2 h-4 w-4" />
-						</Button>
 					</div>
 				</div>
 			</div>
