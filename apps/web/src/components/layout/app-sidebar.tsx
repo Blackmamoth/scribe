@@ -24,19 +24,13 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useBrand } from "@/hooks/brand";
+import { useScribeChat } from "@/hooks/chat";
 import { authClient } from "@/lib/auth-client";
-
-// Mock data for projects
-const projects = [
-	{ id: "1", title: "Welcome Email for SaaS", date: "2 mins ago" },
-	{ id: "2", title: "Password Reset Flow", date: "1 hour ago" },
-	{ id: "3", title: "Monthly Newsletter", date: "1 day ago" },
-	{ id: "4", title: "E-commerce Receipt", date: "3 days ago" },
-	{ id: "5", title: "Event Invitation", date: "5 days ago" },
-];
 
 export function AppSidebar() {
 	const { brands } = useBrand();
+
+	const { chats } = useScribeChat();
 
 	const { data } = authClient.useSession();
 
@@ -71,17 +65,18 @@ export function AppSidebar() {
 					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							{projects.map((item) => (
-								<SidebarMenuItem key={item.id}>
+							{chats?.map((chat) => (
+								<SidebarMenuItem key={chat.id}>
 									<SidebarMenuButton asChild className="h-9">
-										<a
-											href={`/c/${item.id}`}
+										<Link
+											to={"/chat/$id"}
+											params={{ id: chat.id }}
 											className="flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground"
 										>
 											<span className="group-data-[collapsible=icon]:hidden">
-												{item.title}
+												{chat.title}
 											</span>
-										</a>
+										</Link>
 									</SidebarMenuButton>
 								</SidebarMenuItem>
 							))}

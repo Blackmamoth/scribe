@@ -1,3 +1,4 @@
+import type { EmailPreset, EmailTone } from "@scribe/db/types";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
@@ -40,8 +41,8 @@ function RouteComponent() {
 	const [generatedCode, setGeneratedCode] = useState("");
 	const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
 
-	const [tone, setTone] = useState("default");
-	const [emailPreset, setEmailPreset] = useState("");
+	const [tone, setTone] = useState<EmailTone>("professional");
+	const [emailPreset, setEmailPreset] = useState<EmailPreset>("announcement");
 
 	const [viewMode, setViewMode] = useState<"preview" | "code">("preview");
 	const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">(

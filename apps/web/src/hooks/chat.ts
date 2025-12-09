@@ -4,6 +4,7 @@ import {
 	createChat,
 	getChatMessages,
 	getLatestEmailCode,
+	getRecentChats,
 } from "@/functions/chat";
 
 export function useScribeChat(chatId?: string) {
@@ -36,7 +37,17 @@ export function useScribeChat(chatId?: string) {
 		enabled: !!chatId,
 	});
 
+	const chats = useQuery({
+		queryKey: ["chats"],
+		queryFn: async () => {
+			const chats = await getRecentChats({ data: {} });
+			return chats;
+		},
+	});
+
 	return {
+		chats: chats.data,
+		isFetchingChats: chats.isFetching,
 		createChat: createChatMutation.mutateAsync,
 		isCreating: createChatMutation.isPending,
 		chatMessages: chatMessages.data,

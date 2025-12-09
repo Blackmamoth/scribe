@@ -4,6 +4,8 @@ import { buildScribeUserPrompt } from "../prompt";
 
 export const handleChat = (
 	messages: UIMessage[],
+	preset?: string,
+	tone?: string,
 	brand?: {
 		name?: string;
 		logoUrl?: string;
@@ -15,8 +17,8 @@ export const handleChat = (
 		model: openai("gpt-4o-mini"),
 		messages: convertToModelMessages(messages),
 		system: buildScribeUserPrompt({
-			preset: "Announcement",
-			tone: "Professional",
+			preset: preset ?? "announcement",
+			tone: tone ?? "professional",
 			brand,
 		}),
 	});

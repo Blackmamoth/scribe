@@ -1,5 +1,6 @@
 import { type UIMessage, useChat } from "@ai-sdk/react";
 import { processScribeMessages } from "@scribe/core/ai/service/chat";
+import type { EmailPreset, EmailTone } from "@scribe/db/types";
 import { DefaultChatTransport } from "ai";
 import { type Dispatch, type SetStateAction, useEffect, useMemo } from "react";
 import { ChatList } from "@/components/chat/chat-list";
@@ -14,10 +15,10 @@ interface DashboardChatPanelProps {
 	onKeyDown: (e: React.KeyboardEvent) => void;
 	selectedBrandId: string | null;
 	setSelectedBrandId: Dispatch<SetStateAction<string | null>>;
-	tone: string;
-	setTone: (value: string) => void;
-	emailPreset: string;
-	setEmailPreset: (value: string) => void;
+	tone: EmailTone;
+	setTone: (value: EmailTone) => void;
+	emailPreset: EmailPreset;
+	setEmailPreset: (value: EmailPreset) => void;
 	chatMessages:
 		| {
 				id: string;
@@ -49,10 +50,14 @@ export function DashboardChatPanel({
 	const { messages, setMessages, sendMessage } = useChat({
 		transport: new DefaultChatTransport({
 			api: "/api/chat",
-			body: {
+			body: () => ({
 				chatId,
-			},
+				brandId: selectedBrandId,
+				emailTone: tone,
+				emailPreset: emailPreset,
+			}),
 		}),
+		id: chatId,
 	});
 
 	useEffect(() => {
@@ -99,6 +104,7 @@ export function DashboardChatPanel({
 				onRestoreVersion={setGeneratedCode}
 			/>
 			<DashboardChatInput
+				chatId={chatId}
 				input={input}
 				setInput={setInput}
 				onKeyDown={onKeyDown}

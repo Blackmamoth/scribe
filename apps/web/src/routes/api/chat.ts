@@ -59,12 +59,17 @@ export const Route = createFileRoute("/api/chat")({
 						});
 					}
 
-					const stream = handleChat(messages, {
-						name: brand?.name,
-						logoUrl: brand?.logoUrl || "",
-						tagline: brand?.tagline || "",
-						websiteUrl: brand?.websiteUrl || "",
-					});
+					const stream = handleChat(
+						messages,
+						chatExists.preset as string,
+						chatExists.tone as string,
+						{
+							name: brand?.name,
+							logoUrl: brand?.logoUrl || "",
+							tagline: brand?.tagline || "",
+							websiteUrl: brand?.websiteUrl || "",
+						},
+					);
 
 					return stream.toUIMessageStreamResponse({
 						onFinish: async ({ responseMessage }) => {

@@ -15,6 +15,13 @@
 			"when": 1765120314892,
 			"tag": "0001_special_lifeguard",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1765216937873,
+			"tag": "0002_cute_red_shift",
+			"breakpoints": true
 		}
 	]
 }

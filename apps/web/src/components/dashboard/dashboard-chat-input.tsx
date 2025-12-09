@@ -1,3 +1,4 @@
+import type { EmailPreset, EmailTone } from "@scribe/db/types";
 import { ArrowRight } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { BrandSelector } from "@/components/brands/brand-selector";
@@ -6,19 +7,24 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 interface DashboardChatInputProps {
+	chatId: string;
 	input: string;
 	setInput: (value: string) => void;
 	onKeyDown: (e: React.KeyboardEvent) => void;
 	selectedBrandId: string | null;
 	setSelectedBrandId: Dispatch<SetStateAction<string | null>>;
-	tone: string;
-	setTone: (value: string) => void;
-	emailPreset: string;
-	setEmailPreset: (value: string) => void;
-	sendMessage: (message: { text: string }) => Promise<void>;
+	tone: EmailTone;
+	setTone: (value: EmailTone) => void;
+	emailPreset: EmailPreset;
+	setEmailPreset: (value: EmailPreset) => void;
+	sendMessage: (
+		message: { text: string },
+		data?: { body?: Record<string, unknown> },
+	) => Promise<void>;
 }
 
 export function DashboardChatInput({
+	chatId,
 	input,
 	setInput,
 	onKeyDown,
@@ -32,7 +38,17 @@ export function DashboardChatInput({
 }: DashboardChatInputProps) {
 	const onSend = () => {
 		if (input.trim()) {
-			sendMessage({ text: input });
+			sendMessage(
+				{ text: input },
+				{
+					body: {
+						chatId,
+						brandId: selectedBrandId,
+						emailTone: tone,
+						emailPreset: emailPreset,
+					},
+				},
+			);
 		}
 	};
 

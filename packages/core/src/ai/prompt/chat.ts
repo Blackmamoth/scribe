@@ -417,13 +417,8 @@ export function buildScribeUserPrompt({
 		tagline?: string;
 		websiteUrl?: string;
 	};
-	tone: "Professional" | "Friendly" | "Playful" | "Urgent" | "Empathetic";
-	preset:
-		| "Cold Email"
-		| "Newsletter"
-		| "Follow-up"
-		| "Announcement"
-		| "Welcome Series";
+	tone: string;
+	preset: string;
 }) {
 	const brandContext = brand
 		? `

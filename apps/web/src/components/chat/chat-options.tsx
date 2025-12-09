@@ -1,3 +1,5 @@
+import { EMAIL_PRESETS, EMAIL_TONES } from "@scribe/core/constants";
+import type { EmailPreset, EmailTone } from "@scribe/db/types";
 import { Mail, MessageSquare, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,12 +13,13 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatUnderscoreString } from "@/lib/utils";
 
 interface ChatOptionsProps {
-	tone: string;
-	setTone: (value: string) => void;
-	emailPreset: string;
-	setEmailPreset: (value: string) => void;
+	tone: EmailTone;
+	setTone: (value: EmailTone) => void;
+	emailPreset: EmailPreset;
+	setEmailPreset: (value: EmailPreset) => void;
 }
 
 export function ChatOptions({
@@ -25,6 +28,14 @@ export function ChatOptions({
 	emailPreset,
 	setEmailPreset,
 }: ChatOptionsProps) {
+	function isEmailTone(value: string): value is EmailTone {
+		return EMAIL_TONES.includes(value as EmailTone);
+	}
+
+	function isEmailPreset(value: string): value is EmailPreset {
+		return EMAIL_PRESETS.includes(value as EmailPreset);
+	}
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -48,27 +59,24 @@ export function ChatOptions({
 						<div className="flex flex-1 items-center justify-between gap-2">
 							<span className="font-medium text-sm">Tone</span>
 							<span className="rounded-full bg-muted px-2 py-0.5 font-medium text-[10px] text-muted-foreground">
-								{tone || "Default"}
+								{formatUnderscoreString(tone) || "Default"}
 							</span>
 						</div>
 					</DropdownMenuSubTrigger>
 					<DropdownMenuSubContent>
-						<DropdownMenuRadioGroup value={tone} onValueChange={setTone}>
-							<DropdownMenuRadioItem value="Professional">
-								Professional
-							</DropdownMenuRadioItem>
-							<DropdownMenuRadioItem value="Friendly">
-								Friendly
-							</DropdownMenuRadioItem>
-							<DropdownMenuRadioItem value="Playful">
-								Playful
-							</DropdownMenuRadioItem>
-							<DropdownMenuRadioItem value="Urgent">
-								Urgent
-							</DropdownMenuRadioItem>
-							<DropdownMenuRadioItem value="Empathetic">
-								Empathetic
-							</DropdownMenuRadioItem>
+						<DropdownMenuRadioGroup
+							value={tone}
+							onValueChange={(v) => {
+								if (isEmailTone(v)) {
+									setTone(v);
+								}
+							}}
+						>
+							{EMAIL_TONES.map((t) => (
+								<DropdownMenuRadioItem key={t} value={t}>
+									{formatUnderscoreString(t)}
+								</DropdownMenuRadioItem>
+							))}
 						</DropdownMenuRadioGroup>
 					</DropdownMenuSubContent>
 				</DropdownMenuSub>
@@ -79,30 +87,24 @@ export function ChatOptions({
 						<div className="flex flex-1 items-center justify-between gap-2">
 							<span className="font-medium text-sm">Preset</span>
 							<span className="rounded-full bg-muted px-2 py-0.5 font-medium text-[10px] text-muted-foreground">
-								{emailPreset || "None"}
+								{formatUnderscoreString(emailPreset) || "None"}
 							</span>
 						</div>
 					</DropdownMenuSubTrigger>
 					<DropdownMenuSubContent>
 						<DropdownMenuRadioGroup
 							value={emailPreset}
-							onValueChange={setEmailPreset}
+							onValueChange={(v) => {
+								if (isEmailPreset(v)) {
+									setEmailPreset(v);
+								}
+							}}
 						>
-							<DropdownMenuRadioItem value="Cold Email">
-								Cold Email
-							</DropdownMenuRadioItem>
-							<DropdownMenuRadioItem value="Newsletter">
-								Newsletter
-							</DropdownMenuRadioItem>
-							<DropdownMenuRadioItem value="Follow-up">
-								Follow-up
-							</DropdownMenuRadioItem>
-							<DropdownMenuRadioItem value="Announcement">
-								Announcement
-							</DropdownMenuRadioItem>
-							<DropdownMenuRadioItem value="Welcome Series">
-								Welcome Series
-							</DropdownMenuRadioItem>
+							{EMAIL_PRESETS.map((t) => (
+								<DropdownMenuRadioItem key={t} value={t}>
+									{formatUnderscoreString(t)}
+								</DropdownMenuRadioItem>
+							))}
 						</DropdownMenuRadioGroup>
 					</DropdownMenuSubContent>
 				</DropdownMenuSub>

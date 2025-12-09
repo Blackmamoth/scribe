@@ -1,3 +1,8 @@
+import {
+	EMAIL_PRESETS,
+	EMAIL_TONES,
+	MESSAGE_ROLES,
+} from "@scribe/core/constants";
 import { relations } from "drizzle-orm";
 import {
 	integer,
@@ -11,27 +16,11 @@ import {
 import { user } from "./auth";
 import { brand } from "./brand";
 
-export const emailToneEnum = pgEnum("email_tone", [
-	"professional",
-	"friendly",
-	"playful",
-	"urgnet",
-	"empathetic",
-]);
+export const emailToneEnum = pgEnum("email_tone", EMAIL_TONES);
 
-export const emailPresetEnum = pgEnum("email_preset", [
-	"cold_email",
-	"newsletter",
-	"follow_up",
-	"announcement",
-	"welcome_series",
-]);
+export const emailPresetEnum = pgEnum("email_preset", EMAIL_PRESETS);
 
-export const messageRoleEnum = pgEnum("message_role", [
-	"user",
-	"assistant",
-	"system",
-]);
+export const messageRoleEnum = pgEnum("message_role", MESSAGE_ROLES);
 
 export const chat = pgTable("chat", {
 	id: uuid("id").primaryKey().defaultRandom(),

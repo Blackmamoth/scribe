@@ -1,5 +1,8 @@
 import { generateChatTitle } from "@scribe/core/ai/service/chat-title";
-import { createChatSchema } from "@scribe/core/validation";
+import {
+	createChatSchema,
+	getRecentChatsSchema,
+} from "@scribe/core/validation";
 import { db } from "@scribe/db";
 import { chat, chatMessage } from "@scribe/db/schema/chat";
 import { createServerFn } from "@tanstack/react-start";
@@ -43,6 +46,28 @@ export const createChat = createServerFn({ method: "POST" })
 		});
 
 		return chatId;
+	});
+
+export const getRecentChats = createServerFn({
+	method: "POST",
+})
+	.middleware([authMiddleware])
+	.inputValidator(getRecentChatsSchema)
+	.handler(async ({ context, data }) => {
+		if (!context.session) {
+			throw new Error("Unauthenticated");
+		}
+
+		const userId = context.session.user.id;
+
+		const chats = await db.query.chat.findMany({
+			where: (chats, { eq }) => eq(chats.userId, userId),
+			orderBy: (chats, { desc }) => desc(chats.updatedAt),
+			limit: data.limit,
+			offset: data.offset,
+		});
+
+		return chats;
 	});
 
 export const getChatMessages = createServerFn({ method: "POST" })
