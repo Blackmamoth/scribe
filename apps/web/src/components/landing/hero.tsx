@@ -7,16 +7,16 @@ import { BrandSelector } from "@/components/brands/brand-selector";
 import { ChatOptions } from "@/components/chat/chat-options";
 import { Textarea } from "@/components/ui/textarea";
 import { useScribeChat } from "@/hooks/chat";
+import { authClient } from "@/lib/auth-client";
 
-interface HeroProps {
-	isAuthenticated: boolean;
-}
-
-export function Hero({ isAuthenticated }: HeroProps) {
+export function Hero() {
 	const [input, setInput] = useState("");
 	const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
 	const [tone, setTone] = useState<EmailTone>("professional");
 	const [emailPreset, setEmailPreset] = useState<EmailPreset>("cold_email");
+
+	const { data: session } = authClient.useSession();
+	const isAuthenticated = !!session?.user;
 
 	const navigate = useNavigate();
 

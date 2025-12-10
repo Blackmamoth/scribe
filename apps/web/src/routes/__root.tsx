@@ -15,6 +15,7 @@ import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
 import { ThemeProvider } from "next-themes";
+import { NotFound } from "@/components/not-found";
 import { WebContainerProvider } from "@/context/webcontainer";
 import { getUser } from "@/functions/get-user";
 
@@ -59,6 +60,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 	},
 
 	shellComponent: RootDocument,
+	notFoundComponent: NotFound,
 });
 
 function RootDocument() {

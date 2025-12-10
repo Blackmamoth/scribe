@@ -70,7 +70,14 @@ export function WebContainerProvider({
 		async function boot() {
 			try {
 				setBootStatus("booting");
-				const wc = await WebContainer.boot();
+				// Use a global variable on window to strictly ensure singleton across HMR/remounts
+				// @ts-expect-error
+				if (!window.webContainerPromise) {
+					// @ts-expect-error
+					window.webContainerPromise = WebContainer.boot();
+				}
+				// @ts-expect-error
+				const wc = await window.webContainerPromise;
 				wcRef.current = wc;
 
 				await wc.fs.writeFile(

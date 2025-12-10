@@ -36,33 +36,6 @@ export function MonacoEditor({
 				resolveJsonModule: true,
 				noEmit: true,
 			});
-
-			monaco.editor.defineTheme("tokyonight", {
-				base: "vs-dark",
-				inherit: true,
-				rules: [
-					{ token: "", foreground: "a9b1d6", background: "1a1b26" },
-					{ token: "comment", foreground: "565f89", fontStyle: "italic" },
-					{ token: "keyword", foreground: "bb9af7" },
-					{ token: "string", foreground: "9ece6a" },
-					{ token: "number", foreground: "ff9e64" },
-					{ token: "type", foreground: "2ac3de" },
-					{ token: "class", foreground: "7dcfff" },
-					{ token: "function", foreground: "7aa2f7" },
-					{ token: "tag", foreground: "f7768e" },
-					{ token: "attribute.name", foreground: "bb9af7" },
-					{ token: "attribute.value", foreground: "9ece6a" },
-				],
-				colors: {
-					"editor.background": "#1a1b26",
-					"editor.foreground": "#a9b1d6",
-					"editorCursor.foreground": "#c0caf5",
-					"editor.lineHighlightBackground": "#292e42",
-					"editorLineNumber.foreground": "#565f89",
-					"editor.selectionBackground": "#33467C",
-					"editor.inactiveSelectionBackground": "#33467C80",
-				},
-			});
 		}
 	}, [monaco]);
 
@@ -76,7 +49,7 @@ export function MonacoEditor({
 				height="100%"
 				language={language}
 				value={code}
-				theme={resolvedTheme === "dark" ? "tokyonight" : "light"}
+				theme={resolvedTheme === "dark" ? "vs-dark" : "light"}
 				onChange={(value) => onChange(value || "")}
 				options={{
 					minimap: { enabled: false },

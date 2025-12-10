@@ -16,7 +16,7 @@ function HomeComponent() {
 			<div className="flex min-h-screen flex-col bg-background font-sans antialiased">
 				<Header />
 				<main className="flex-1">
-					<Hero isAuthenticated={false} />
+					<Hero />
 				</main>
 			</div>
 		);
@@ -34,7 +34,7 @@ function HomeComponent() {
 						transition={{ duration: 0.3 }}
 						className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center"
 					>
-						<Hero isAuthenticated={true} />
+						<Hero />
 					</motion.div>
 				</AnimatePresence>
 			</div>

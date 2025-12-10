@@ -1,5 +1,16 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { LogOut, MoreHorizontal, Plus, Settings } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { LogOut, MoreHorizontal, Plus, Settings, Trash2 } from "lucide-react";
+import { useState } from "react";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -18,6 +29,7 @@ import {
 	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
+	SidebarMenuAction,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarRail,
@@ -35,6 +47,17 @@ export function AppSidebar() {
 	const { data } = authClient.useSession();
 
 	const navigate = useNavigate();
+	const { location } = useRouterState();
+
+	const [deleteId, setDeleteId] = useState<string | null>(null);
+
+	const handleDelete = () => {
+		if (deleteId) {
+			console.log("Deleting chat:", deleteId);
+			// Mock delete logic
+			setDeleteId(null);
+		}
+	};
 
 	return (
 		<Sidebar collapsible="icon">
@@ -67,17 +90,43 @@ export function AppSidebar() {
 						<SidebarMenu>
 							{chats?.map((chat) => (
 								<SidebarMenuItem key={chat.id}>
-									<SidebarMenuButton asChild className="h-9">
+									<SidebarMenuButton
+										asChild
+										className="h-9"
+										tooltip={chat.title}
+										isActive={location.pathname === `/chat/${chat.id}`}
+									>
 										<Link
 											to={"/chat/$id"}
 											params={{ id: chat.id }}
 											className="flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground"
 										>
-											<span className="group-data-[collapsible=icon]:hidden">
+											<span className="truncate group-data-[collapsible=icon]:hidden">
 												{chat.title}
 											</span>
 										</Link>
 									</SidebarMenuButton>
+									<DropdownMenu>
+										<DropdownMenuTrigger asChild>
+											<SidebarMenuAction showOnHover>
+												<MoreHorizontal className="h-4 w-4" />
+												<span className="sr-only">More</span>
+											</SidebarMenuAction>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent
+											className="w-48 rounded-lg"
+											side="bottom"
+											align="end"
+										>
+											<DropdownMenuItem
+												onClick={() => setDeleteId(chat.id)}
+												className="text-red-500 focus:bg-red-50 focus:text-red-500"
+											>
+												<Trash2 className="mr-2 h-4 w-4" />
+												<span>Delete Chat</span>
+											</DropdownMenuItem>
+										</DropdownMenuContent>
+									</DropdownMenu>
 								</SidebarMenuItem>
 							))}
 						</SidebarMenu>
@@ -87,13 +136,13 @@ export function AppSidebar() {
 				<SidebarGroup className="group-data-[collapsible=icon]:hidden">
 					<SidebarGroupLabel className="flex items-center justify-between px-2 font-medium text-muted-foreground text-xs">
 						Brands
-						<a
-							href="/brands"
+						<Link
+							to="/brands"
 							className="transition-colors hover:text-foreground"
 						>
 							<Settings className="h-3 w-3" />
 							<span className="sr-only">Manage Brands</span>
-						</a>
+						</Link>
 					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
@@ -211,6 +260,28 @@ export function AppSidebar() {
 				</SidebarMenu>
 			</SidebarFooter>
 			<SidebarRail />
+			<AlertDialog
+				open={!!deleteId}
+				onOpenChange={(open) => !open && setDeleteId(null)}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete Chat</AlertDialogTitle>
+						<AlertDialogDescription>
+							This chat and all of its data will be deleted from our database.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleDelete}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							Delete
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Sidebar>
 	);
 }
