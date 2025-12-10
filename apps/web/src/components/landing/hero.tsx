@@ -1,11 +1,10 @@
 import type { EmailPreset, EmailTone } from "@scribe/db/types";
 import { useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { BrandSelector } from "@/components/brands/brand-selector";
 import { ChatOptions } from "@/components/chat/chat-options";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useScribeChat } from "@/hooks/chat";
 
@@ -29,13 +28,13 @@ export function Hero({ isAuthenticated }: HeroProps) {
 			return;
 		}
 		if (input.trim()) {
-			console.log(input, selectedBrandId, tone, emailPreset);
 			const id = await createChat({
 				prompt: input,
 				brandId: selectedBrandId,
 				tone,
 				preset: emailPreset,
 			});
+			localStorage.setItem(`initial_prompt_${id}`, input);
 			navigate({ to: "/chat/$id", params: { id } });
 		}
 	};
@@ -109,14 +108,6 @@ export function Hero({ isAuthenticated }: HeroProps) {
 										</kbd>{" "}
 										to send
 									</div>
-									<Button
-										size="sm"
-										className="rounded-lg"
-										onClick={handleSendMessage}
-										disabled={isCreating || !input.trim()}
-									>
-										Send <ArrowRight className="ml-2 h-4 w-4" />
-									</Button>
 								</div>
 							</div>
 						</div>

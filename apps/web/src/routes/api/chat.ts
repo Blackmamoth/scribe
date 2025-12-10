@@ -2,7 +2,7 @@ import { handleChat, parseScribeResponse } from "@scribe/core/ai/service/chat";
 import { chatSchema } from "@scribe/core/validation";
 import { db, eq } from "@scribe/db";
 import { chat, chatMessage, emailVersions } from "@scribe/db/schema/chat";
-import type { Brand, ChatMessage } from "@scribe/db/types";
+import type { Brand } from "@scribe/db/types";
 import { createFileRoute } from "@tanstack/react-router";
 import { json } from "@tanstack/react-start";
 import type { UIMessage } from "ai";
@@ -34,8 +34,6 @@ export const Route = createFileRoute("/api/chat")({
 					if (messages === undefined || messages.length === 0) {
 						throw new Error("messages are required");
 					}
-
-					const shouldSaveUserMessage = messages.length > 1;
 
 					const latestUserMessage = messages.slice(-1)[0];
 
@@ -78,24 +76,22 @@ export const Route = createFileRoute("/api/chat")({
 								.join("");
 							const { assistant, code } = parseScribeResponse(responseText);
 
-							const insertArr: Omit<ChatMessage, "id" | "createdAt">[] = [
-								{ chatId, message: assistant, role: "assistant" },
+							const userMessage = latestUserMessage.parts
+								.map((part) => (part.type === "text" ? part.text : ""))
+								.join("");
+
+							const insertArr = [
+								{ chatId, message: userMessage, role: "user" as const },
+								{ chatId, message: assistant, role: "assistant" as const },
 							];
 
-							if (shouldSaveUserMessage) {
-								const userMessage = latestUserMessage.parts
-									.map((part) => (part.type === "text" ? part.text : ""))
-									.join("");
-
-								insertArr.unshift({
-									chatId,
-									message: userMessage,
-									role: "user",
-								});
-							}
+							insertArr.unshift();
 
 							await db.transaction(async (tx) => {
-								await tx.insert(chatMessage).values(insertArr);
+								const newChatMessages = await tx
+									.insert(chatMessage)
+									.values(insertArr)
+									.returning({ chatMessageId: chatMessage.id });
 
 								if (code?.trim()) {
 									let version = 1;
@@ -109,36 +105,39 @@ export const Route = createFileRoute("/api/chat")({
 
 									version += latestVersion?.version ?? 0;
 
+									const chatMessageId = newChatMessages[0].chatMessageId;
+
 									await tx.insert(emailVersions).values({
 										chatId,
 										code,
 										version,
+										chatMessageId,
 									});
-
-									const chatUpdateDetails: Partial<typeof chat.$inferInsert> = {
-										updatedAt: new Date(),
-									};
-
-									if (
-										data.emailPreset &&
-										data.emailPreset !== chatExists.preset
-									) {
-										chatUpdateDetails.preset = data.emailPreset;
-									}
-
-									if (data.emailTone && data.emailTone !== chatExists.tone) {
-										chatUpdateDetails.tone = data.emailTone;
-									}
-
-									if (data.brandId && data.brandId !== chatExists.brandId) {
-										chatUpdateDetails.brandId = data.brandId;
-									}
-
-									await tx
-										.update(chat)
-										.set(chatUpdateDetails)
-										.where(eq(chat.id, chatId));
 								}
+
+								const chatUpdateDetails: Partial<typeof chat.$inferInsert> = {
+									updatedAt: new Date(),
+								};
+
+								if (
+									data.emailPreset &&
+									data.emailPreset !== chatExists.preset
+								) {
+									chatUpdateDetails.preset = data.emailPreset;
+								}
+
+								if (data.emailTone && data.emailTone !== chatExists.tone) {
+									chatUpdateDetails.tone = data.emailTone;
+								}
+
+								if (data.brandId && data.brandId !== chatExists.brandId) {
+									chatUpdateDetails.brandId = data.brandId;
+								}
+
+								await tx
+									.update(chat)
+									.set(chatUpdateDetails)
+									.where(eq(chat.id, chatId));
 							});
 						},
 					});

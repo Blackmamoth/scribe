@@ -4,7 +4,7 @@ import {
 	getRecentChatsSchema,
 } from "@scribe/core/validation";
 import { db } from "@scribe/db";
-import { chat, chatMessage } from "@scribe/db/schema/chat";
+import { chat } from "@scribe/db/schema/chat";
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 import { authMiddleware } from "@/middleware/auth";
@@ -23,30 +23,22 @@ export const createChat = createServerFn({ method: "POST" })
 
 		let chatId = "";
 
-		await db.transaction(async (tx) => {
-			const [newChat] = await tx
-				.insert(chat)
-				.values({
-					title: chatTitle,
-					userId,
-					brandId: data.brandId,
-					tone: data.emailTone,
-					preset: data.emailPreset,
-				})
-				.returning({ chatId: chat.id });
+		const [newChat] = await db
+			.insert(chat)
+			.values({
+				title: chatTitle,
+				userId,
+				brandId: data.brandId,
+				tone: data.emailTone,
+				preset: data.emailPreset,
+			})
+			.returning({ chatId: chat.id });
 
-			if (!newChat) {
-				throw new Error("failed to create chat");
-			}
+		if (!newChat) {
+			throw new Error("Failed to create chat, please try again!");
+		}
 
-			chatId = newChat.chatId;
-
-			await tx.insert(chatMessage).values({
-				chatId: chatId,
-				message: data.prompt,
-				role: "user",
-			});
-		});
+		chatId = newChat.chatId;
 
 		return chatId;
 	});

@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { DashboardChatPanel } from "@/components/dashboard/dashboard-chat-panel";
 import { DashboardPreviewPanel } from "@/components/dashboard/dashboard-preview-panel";
 import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
-import { SendTestDialog } from "@/components/preview/send-test-dialog";
 import { ChatPageSkeleton } from "@/components/skeletons/chat-page-skeleton";
 import {
 	ResizableHandle,
@@ -14,6 +13,7 @@ import {
 	ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useScribeChat } from "@/hooks/chat";
+import { sendTestEmail } from "@/lib/email-utils";
 
 export const Route = createFileRoute("/chat/$id")({
 	component: RouteComponent,
@@ -27,6 +27,9 @@ export const Route = createFileRoute("/chat/$id")({
 
 function RouteComponent() {
 	const { id } = Route.useParams();
+
+	const { user } = Route.useRouteContext();
+
 	const {
 		chatSession,
 		isFetchingchatSession,
@@ -48,8 +51,8 @@ function RouteComponent() {
 	const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">(
 		"desktop",
 	);
-	const [isSendTestOpen, setIsSendTestOpen] = useState(false);
 	const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
+	const [previewHtml, setPreviewHtml] = useState("");
 
 	useEffect(() => {
 		if (chatSession?.brandId) {
@@ -78,6 +81,27 @@ function RouteComponent() {
 		toast.success("Exported as email-template.tsx");
 	};
 
+	const handleSendTest = async () => {
+		if (!user?.email) {
+			toast.error("User email not found");
+			return;
+		}
+
+		if (!previewHtml) {
+			toast.error("No preview content to send");
+			return;
+		}
+
+		const toastId = toast.loading("Sending test email...");
+		try {
+			await sendTestEmail(previewHtml, user.email);
+			toast.success(`Test email sent to ${user.email}`, { id: toastId });
+		} catch (error) {
+			console.error("Failed to send test email:", error);
+			toast.error("Failed to send test email", { id: toastId });
+		}
+	};
+
 	if (isLoadingchatSession) {
 		return (
 			<AuthenticatedLayout>
@@ -89,10 +113,6 @@ function RouteComponent() {
 	return (
 		<AuthenticatedLayout>
 			<div className="relative flex h-full flex-col">
-				<SendTestDialog
-					open={isSendTestOpen}
-					onOpenChange={setIsSendTestOpen}
-				/>
 				<AnimatePresence mode="wait">
 					<motion.div
 						key="chat"
@@ -134,11 +154,13 @@ function RouteComponent() {
 									generatedCode={generatedCode}
 									setGeneratedCode={setGeneratedCode}
 									onExportJsx={handleExportJsx}
-									onSendTest={() => setIsSendTestOpen(true)}
+									onSendTest={handleSendTest}
 									previewTheme={previewTheme}
 									setPreviewTheme={setPreviewTheme}
 									latestEmailCode={latestEmailCode}
 									isFetchingLatestEmail={isFetchingLatestEmail}
+									previewHtml={previewHtml}
+									onHtmlChange={setPreviewHtml}
 								/>
 							</ResizablePanel>
 						</ResizablePanelGroup>

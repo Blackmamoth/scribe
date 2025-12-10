@@ -56,6 +56,9 @@ export const emailVersions = pgTable(
 			.notNull()
 			.references(() => chat.id, { onDelete: "cascade" }),
 		code: text("code").notNull(),
+		chatMessageId: uuid("chat_message_id")
+			.notNull()
+			.references(() => chatMessage.id, { onDelete: "cascade" }),
 		version: integer("version").notNull(),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 	},
@@ -83,5 +86,16 @@ export const chatMessageRelations = relations(chatMessage, ({ one }) => ({
 	chat: one(chat, {
 		fields: [chatMessage.chatId],
 		references: [chat.id],
+	}),
+}));
+
+export const emailVersionRelations = relations(emailVersions, ({ one }) => ({
+	chat: one(chat, {
+		fields: [emailVersions.chatId],
+		references: [chat.id],
+	}),
+	message: one(chatMessage, {
+		fields: [emailVersions.chatMessageId],
+		references: [chatMessage.id],
 	}),
 }));

@@ -4,17 +4,20 @@ import { useWebContainer } from "@/hooks/webcontainer";
 import { cn } from "@/lib/utils";
 
 interface EmailPreviewProps {
-	html: string;
+	code: string;
 	device: "desktop" | "tablet" | "mobile";
 	previewTheme: "light" | "dark";
+	previewHtml: string;
+	onHtmlChange: (html: string) => void;
 }
 
 export function EmailPreview({
-	html: code,
+	code,
 	device,
 	previewTheme,
+	previewHtml,
+	onHtmlChange,
 }: EmailPreviewProps) {
-	const [previewHtml, setPreviewHtml] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [isGenerating, setIsGenerating] = useState(false);
 
@@ -50,7 +53,7 @@ export function EmailPreview({
 				const result = await runNode(["render.js"]);
 
 				if (result.exitCode === 0) {
-					setPreviewHtml(result.output);
+					onHtmlChange(result.output);
 					setError(null);
 				} else {
 					setError(result.output);
@@ -63,7 +66,7 @@ export function EmailPreview({
 				setIsGenerating(false);
 			}
 		},
-		[bootStatus, runNode, writeFile],
+		[bootStatus, runNode, writeFile, onHtmlChange],
 	);
 
 	useEffect(() => {

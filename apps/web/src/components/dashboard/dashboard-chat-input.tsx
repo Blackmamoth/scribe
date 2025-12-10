@@ -1,9 +1,7 @@
 import type { EmailPreset, EmailTone } from "@scribe/db/types";
-import { ArrowRight } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { BrandSelector } from "@/components/brands/brand-selector";
 import { ChatOptions } from "@/components/chat/chat-options";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 interface DashboardChatInputProps {

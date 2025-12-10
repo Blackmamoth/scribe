@@ -77,23 +77,28 @@ export function DashboardChatPanel({
 
 	useEffect(() => {
 		if (
-			chatMessages?.length &&
+			chatMessages !== undefined &&
 			!isFetchingChatMessages &&
 			!initializedRef.current
 		) {
 			initializedRef.current = true;
-			if (chatMessages.length === 1) {
-				sendMessage(
-					{ text: chatMessages[0].message },
-					{
-						body: {
-							chatId,
-							brandId: selectedBrandId,
-							emailTone: tone,
-							emailPreset: emailPreset,
+			if (chatMessages.length === 0) {
+				const localStorageKey = `initial_prompt_${chatId}`;
+				const initialPrompt = localStorage.getItem(localStorageKey);
+				if (initialPrompt !== null) {
+					sendMessage(
+						{ text: initialPrompt },
+						{
+							body: {
+								chatId,
+								brandId: selectedBrandId,
+								emailTone: tone,
+								emailPreset: emailPreset,
+							},
 						},
-					},
-				);
+					);
+					localStorage.removeItem(localStorageKey);
+				}
 			} else {
 				setMessages(
 					chatMessages.map(
@@ -106,7 +111,16 @@ export function DashboardChatPanel({
 				);
 			}
 		}
-	}, [chatMessages, isFetchingChatMessages, sendMessage, setMessages]);
+	}, [
+		chatMessages,
+		isFetchingChatMessages,
+		sendMessage,
+		setMessages,
+		chatId,
+		emailPreset,
+		selectedBrandId,
+		tone,
+	]);
 
 	const displayMessages = useMemo(() => {
 		return processScribeMessages(messages);

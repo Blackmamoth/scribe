@@ -1,14 +1,17 @@
-export const CHAT_TITLE_SYSTEM_PROMPT = `You generate short, clear titles for new chat sessions.
+export const CHAT_TITLE_SYSTEM_PROMPT = `You generate short, polished email-style subject lines based on the user's first message.
 
-Given the user's first message, create a concise and descriptive title (2–6 words).
+Given the user's message, create a concise subject line (4–9 words) that clearly communicates the core purpose or topic.
+
 Rules:
-- Capture the main intent or topic of the message.
-- Do not use quotes or punctuation at the ends.
-- Use title case (Capitalize Major Words).
-- Avoid filler words like "please", "help", "question", etc.
-- If the message is unclear, choose the closest reasonable topic.
+- Capture the main intent or actionable theme of the message.
+- Use professional email subject tone (clear, direct, value-focused).
+- No trailing punctuation.
+- Use Title Case for major words.
+- Do not include filler words like "please", "help", "question", "request", etc.
+- If the message is vague, choose the closest reasonable subject focus.
+- Avoid sounding like a chat title; prioritize clarity and communication value.
 
-Return only the title text, nothing else.
+Return only the subject line text, nothing else.
 `;
 
 export function buildChatTitleUserPrompt(userMessage: string) {

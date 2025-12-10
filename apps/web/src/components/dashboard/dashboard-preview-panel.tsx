@@ -17,6 +17,8 @@ interface DashboardPreviewPanelProps {
 	setPreviewTheme: (theme: "light" | "dark") => void;
 	latestEmailCode: string | undefined;
 	isFetchingLatestEmail: boolean;
+	previewHtml: string;
+	onHtmlChange: (html: string) => void;
 }
 
 export function DashboardPreviewPanel({
@@ -32,6 +34,8 @@ export function DashboardPreviewPanel({
 	setPreviewTheme,
 	latestEmailCode,
 	isFetchingLatestEmail,
+	previewHtml,
+	onHtmlChange,
 }: DashboardPreviewPanelProps) {
 	useEffect(() => {
 		if (!isFetchingLatestEmail && latestEmailCode) {
@@ -61,9 +65,11 @@ export function DashboardPreviewPanel({
 					)}
 				>
 					<EmailPreview
-						html={generatedCode}
+						code={generatedCode}
 						device={device}
 						previewTheme={previewTheme}
+						previewHtml={previewHtml}
+						onHtmlChange={onHtmlChange}
 					/>
 				</div>
 

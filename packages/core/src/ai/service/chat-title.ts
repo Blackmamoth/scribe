@@ -19,6 +19,6 @@ export const generateChatTitle = async (message: string) => {
 		return text;
 	} catch (error) {
 		console.error(error);
-		return "";
+		return "New Chat";
 	}
 };
