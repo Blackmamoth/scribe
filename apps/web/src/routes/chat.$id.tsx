@@ -68,18 +68,15 @@ function RouteComponent() {
 	const [previewHtml, setPreviewHtml] = useState("");
 
 	useEffect(() => {
-		if (chatSession?.brandId) {
-			setSelectedBrandId(chatSession.brandId);
-		}
-
-		if (chatSession?.preset) {
-			setEmailPreset(chatSession.preset);
-		}
-
-		if (chatSession?.tone) {
-			setTone(chatSession.tone);
-		}
-	}, [chatSession?.brandId, chatSession?.preset, chatSession?.tone]);
+		setSelectedBrandId(chatSession?.brandId ?? null);
+		setEmailPreset(chatSession?.preset ?? "announcement");
+		setTone(chatSession?.tone ?? "professional");
+	}, [
+		chatSession?.brandId,
+		chatSession?.preset,
+		chatSession?.tone,
+		chatSession,
+	]);
 
 	const handleExportJsx = () => {
 		const blob = new Blob([generatedCode], { type: "text/plain" });
@@ -140,6 +137,7 @@ function RouteComponent() {
 						>
 							<ResizablePanel defaultSize={40} minSize={30}>
 								<DashboardChatPanel
+									key={id}
 									isLoading={isLoading}
 									chatId={id}
 									setGeneratedCode={setGeneratedCode}

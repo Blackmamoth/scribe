@@ -11,6 +11,8 @@ export const handleChat = (
 		logoUrl?: string;
 		tagline?: string;
 		websiteUrl?: string;
+		primaryColor?: string;
+		secondaryColor?: string;
 	},
 ) => {
 	const response = streamText({

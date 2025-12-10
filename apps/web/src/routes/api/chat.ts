@@ -66,6 +66,8 @@ export const Route = createFileRoute("/api/chat")({
 							logoUrl: brand?.logoUrl || "",
 							tagline: brand?.tagline || "",
 							websiteUrl: brand?.websiteUrl || "",
+							primaryColor: brand?.primaryColor || "",
+							secondaryColor: brand?.secondaryColor || "",
 						},
 					);
 

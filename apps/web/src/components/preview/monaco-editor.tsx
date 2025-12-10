@@ -59,6 +59,7 @@ export function MonacoEditor({
 					automaticLayout: true,
 					padding: { top: 16, bottom: 16 },
 					fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+					readOnly: true,
 				}}
 			/>
 		</div>

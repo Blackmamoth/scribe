@@ -23,7 +23,7 @@ export function ChatList({
 
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, []);
+	}, [messages]);
 
 	return (
 		<div className="flex-1 space-y-4 overflow-y-auto p-4">
