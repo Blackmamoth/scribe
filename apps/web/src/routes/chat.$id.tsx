@@ -1,5 +1,5 @@
 import type { EmailPreset, EmailTone } from "@scribe/db/types";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import {
 	ResizablePanel,
 	ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { getChat } from "@/functions/chat";
 import { useScribeChat } from "@/hooks/chat";
 import { sendTestEmail } from "@/lib/email-utils";
 
@@ -22,6 +23,18 @@ export const Route = createFileRoute("/chat/$id")({
 			throw redirect({ to: "/signin" });
 		}
 		return { user: context.user };
+	},
+	loader: async ({ params }) => {
+		try {
+			const chat = await getChat({ data: { id: params.id } });
+			if (!chat) {
+				throw notFound();
+			}
+			return { chat };
+		} catch (error) {
+			console.error(error);
+			throw notFound();
+		}
 	},
 });
 

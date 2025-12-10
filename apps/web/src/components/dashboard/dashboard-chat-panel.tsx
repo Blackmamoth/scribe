@@ -55,6 +55,9 @@ export function DashboardChatPanel({
 			},
 		}),
 		id: chatId,
+		onData: (part) => {
+			console.log(part);
+		},
 	});
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {

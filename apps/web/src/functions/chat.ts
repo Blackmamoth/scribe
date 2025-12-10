@@ -9,6 +9,24 @@ import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 import { authMiddleware } from "@/middleware/auth";
 
+export const getChat = createServerFn({ method: "GET" })
+	.middleware([authMiddleware])
+	.inputValidator(z.object({ id: z.string().uuid() }))
+	.handler(async ({ context, data }) => {
+		if (!context.session) {
+			throw new Error("Unauthenticated");
+		}
+
+		const userId = context.session.user.id;
+
+		const chat = await db.query.chat.findFirst({
+			where: (chats, { and, eq }) =>
+				and(eq(chats.userId, userId), eq(chats.id, data.id)),
+		});
+
+		return chat;
+	});
+
 export const createChat = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator(createChatSchema)

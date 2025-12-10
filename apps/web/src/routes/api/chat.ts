@@ -70,6 +70,7 @@ export const Route = createFileRoute("/api/chat")({
 					);
 
 					return stream.toUIMessageStreamResponse({
+						sendReasoning: true,
 						onFinish: async ({ responseMessage }) => {
 							const responseText = responseMessage.parts
 								.map((part) => (part.type === "text" ? part.text : ""))
