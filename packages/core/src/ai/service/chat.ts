@@ -65,7 +65,7 @@ export function parseScribeStream(content: string): ParsedScribeMessage {
 	let isComplete = false;
 
 	const replyStartMatch = content.match(/<scribe-reply>/);
-	if (replyStartMatch?.index) {
+	if (replyStartMatch?.index !== undefined) {
 		const replyStart = replyStartMatch.index + "<scribe-reply>".length;
 		const replyEndMatch = content.match(/<\/scribe-reply>/);
 
@@ -81,7 +81,7 @@ export function parseScribeStream(content: string): ParsedScribeMessage {
 	}
 
 	const codeStartMatch = content.match(/<scribe-code>/);
-	if (codeStartMatch?.index) {
+	if (codeStartMatch?.index !== undefined) {
 		const codeStart = codeStartMatch.index + "<scribe-code>".length;
 		const codeEndMatch = content.match(/<\/scribe-code>/);
 
