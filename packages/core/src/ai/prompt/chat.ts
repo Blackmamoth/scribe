@@ -991,6 +991,8 @@ export function buildScribeUserPrompt({
 		logoUrl?: string;
 		tagline?: string;
 		websiteUrl?: string;
+		primaryColor?: string;
+		secondaryColor?: string;
 	};
 	tone: string;
 	preset: string;
@@ -1002,6 +1004,8 @@ ${brand.name ? `- Brand Name: ${brand.name}` : ""}
 ${brand.logoUrl ? `- Logo URL: ${brand.logoUrl}` : ""}
 ${brand.tagline ? `- Tagline: ${brand.tagline}` : ""}
 ${brand.websiteUrl ? `- Website: ${brand.websiteUrl}` : ""}
+${brand.primaryColor ? `- Primary Color: ${brand.primaryColor}` : ""}
+${brand.secondaryColor ? `- Secondary Color: ${brand.secondaryColor}` : ""}
 `.trim()
 		: "No brand selected - create a modern, neutral design without brand elements.";
 

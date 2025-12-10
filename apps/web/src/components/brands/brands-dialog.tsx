@@ -39,6 +39,8 @@ export function BrandDialog({
 			logo: null as File | null,
 			logoUrl: brand?.logoUrl || "",
 			tagline: brand?.tagline || "",
+			primaryColor: brand?.primaryColor || "#0066FF",
+			secondaryColor: brand?.secondaryColor || "#FFFFFF",
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -54,6 +56,8 @@ export function BrandDialog({
 					logoUrl: logoUrl,
 					websiteUrl: value.websiteUrl ?? "",
 					tagline: value.tagline ?? "",
+					primaryColor: value.primaryColor,
+					secondaryColor: value.secondaryColor,
 				});
 
 				onOpenChange(false);
@@ -73,6 +77,8 @@ export function BrandDialog({
 				form.setFieldValue("logoUrl", brand.logoUrl || "");
 				form.setFieldValue("logo", null);
 				form.setFieldValue("tagline", brand.tagline || "");
+				form.setFieldValue("primaryColor", brand.primaryColor || "#0066FF");
+				form.setFieldValue("secondaryColor", brand.secondaryColor || "#FFFFFF");
 			}
 		}
 	}, [open, brand, form]);
@@ -247,6 +253,98 @@ export function BrandDialog({
 							</div>
 						)}
 					</form.Field>
+
+					<div className="grid grid-cols-2 gap-4">
+						<form.Field
+							name="primaryColor"
+							validators={{
+								onChange: z
+									.string()
+									.regex(
+										/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+										"Invalid hex code",
+									),
+							}}
+						>
+							{(field) => (
+								<div className="space-y-2">
+									<Label htmlFor="primaryColor">Primary Color</Label>
+									<div className="flex gap-2">
+										<div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border">
+											<input
+												type="color"
+												className="-top-1/2 -left-1/2 absolute h-[200%] w-[200%] cursor-pointer border-0 p-0"
+												value={field.state.value}
+												onInput={(e) =>
+													field.handleChange(e.currentTarget.value)
+												}
+												onChange={(e) => field.handleChange(e.target.value)}
+											/>
+										</div>
+										<Input
+											id="primaryColor"
+											value={field.state.value}
+											onBlur={field.handleBlur}
+											onChange={(e) => field.handleChange(e.target.value)}
+											placeholder="#0066FF"
+											className="font-mono uppercase"
+											maxLength={7}
+										/>
+									</div>
+									{field.state.meta.errors && field.state.meta.isDirty && (
+										<p className="text-red-500 text-sm">
+											{field.state.meta.errors[0]?.message}
+										</p>
+									)}
+								</div>
+							)}
+						</form.Field>
+
+						<form.Field
+							name="secondaryColor"
+							validators={{
+								onChange: z
+									.string()
+									.regex(
+										/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+										"Invalid hex code",
+									),
+							}}
+						>
+							{(field) => (
+								<div className="space-y-2">
+									<Label htmlFor="secondaryColor">Secondary Color</Label>
+									<div className="flex gap-2">
+										<div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md border">
+											<input
+												type="color"
+												className="-top-1/2 -left-1/2 absolute h-[200%] w-[200%] cursor-pointer border-0 p-0"
+												value={field.state.value}
+												onInput={(e) =>
+													field.handleChange(e.currentTarget.value)
+												}
+												onChange={(e) => field.handleChange(e.target.value)}
+											/>
+										</div>
+										<Input
+											id="secondaryColor"
+											value={field.state.value}
+											onBlur={field.handleBlur}
+											onChange={(e) => field.handleChange(e.target.value)}
+											placeholder="#FFFFFF"
+											className="font-mono uppercase"
+											maxLength={7}
+										/>
+									</div>
+									{field.state.meta.errors && field.state.meta.isDirty && (
+										<p className="text-red-500 text-sm">
+											{field.state.meta.errors[0]?.message}
+										</p>
+									)}
+								</div>
+							)}
+						</form.Field>
+					</div>
 
 					<DialogFooter>
 						<Button disabled={isUploading || isCreating} type="submit">

@@ -90,6 +90,8 @@ export const createBrand = createServerFn({ method: "POST" })
 				logoUrl: data.logoUrl,
 				websiteUrl: data.websiteUrl,
 				tagline: data.tagline,
+				primaryColor: data.primaryColor,
+				secondaryColor: data.secondaryColor,
 			})
 			.returning();
 

@@ -34,6 +34,8 @@ export function useBrand() {
 					logoUrl: data.logoUrl ?? "",
 					tagline: data.tagline ?? "",
 					websiteUrl: data.websiteUrl ?? "",
+					primaryColor: data.primaryColor ?? "",
+					secondaryColor: data.secondaryColor ?? "",
 				},
 			});
 		},

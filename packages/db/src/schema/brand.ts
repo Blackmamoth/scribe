@@ -11,6 +11,8 @@ export const brand = pgTable("brand", {
 	logoUrl: text("logo_url"),
 	websiteUrl: text("website_url"),
 	tagline: text("tagline"),
+	primaryColor: text("primary_color").notNull().default("#0066FF"),
+	secondaryColor: text("secondary_color").notNull().default("#FFFFFF"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at")
 		.defaultNow()
