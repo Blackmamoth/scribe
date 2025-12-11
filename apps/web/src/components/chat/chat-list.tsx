@@ -10,17 +10,13 @@ interface ChatListProps {
 		rawContent: string;
 		parsed?: ParsedScribeMessage;
 	}[];
-	isLoading?: boolean;
 	onRestoreVersion?: (code: string) => void;
 }
 
-export function ChatList({
-	messages,
-	isLoading,
-	onRestoreVersion,
-}: ChatListProps) {
+export function ChatList({ messages, onRestoreVersion }: ChatListProps) {
 	const bottomRef = useRef<HTMLDivElement>(null);
 
+	// biome-ignore lint: this effect intentionally scrolls on every message change
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
@@ -37,13 +33,6 @@ export function ChatList({
 					<ChatMessage message={message} onRestore={onRestoreVersion} />
 				</motion.div>
 			))}
-			{isLoading && (
-				<div className="flex w-full gap-4 p-4">
-					<div className="flex items-center gap-2 text-muted-foreground text-sm">
-						<span className="animate-pulse">AI is thinking...</span>
-					</div>
-				</div>
-			)}
 			<div ref={bottomRef} />
 		</div>
 	);

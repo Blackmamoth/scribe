@@ -1,5 +1,7 @@
+import { type UIMessage, useChat } from "@ai-sdk/react";
 import type { EmailPreset, EmailTone } from "@scribe/db/types";
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import { DefaultChatTransport } from "ai";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -13,8 +15,8 @@ import {
 	ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { getChat } from "@/functions/chat";
+import { sendTestEmail } from "@/functions/email";
 import { useScribeChat } from "@/hooks/chat";
-import { sendTestEmail } from "@/lib/email-utils";
 
 export const Route = createFileRoute("/chat/$id")({
 	component: RouteComponent,
@@ -52,7 +54,7 @@ function RouteComponent() {
 	} = useScribeChat(id);
 
 	const [input, setInput] = useState("");
-	const [isLoading, _setIsLoading] = useState(false);
+	const [_isLoading, _setIsLoading] = useState(false);
 
 	const [generatedCode, setGeneratedCode] = useState("");
 	const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
@@ -67,6 +69,19 @@ function RouteComponent() {
 	const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
 	const [previewHtml, setPreviewHtml] = useState("");
 
+	const { messages, setMessages, sendMessage, status } = useChat({
+		transport: new DefaultChatTransport({
+			api: "/api/chat",
+			body: {
+				chatId: id,
+				brandId: selectedBrandId,
+				emailTone: tone,
+				emailPreset: emailPreset,
+			},
+		}),
+		id: id,
+	});
+
 	useEffect(() => {
 		setSelectedBrandId(chatSession?.brandId ?? null);
 		setEmailPreset(chatSession?.preset ?? "announcement");
@@ -76,6 +91,53 @@ function RouteComponent() {
 		chatSession?.preset,
 		chatSession?.tone,
 		chatSession,
+	]);
+
+	useEffect(() => {
+		if (
+			chatSession?.chatMessages !== undefined &&
+			!isFetchingchatSession &&
+			messages.length === 0
+		) {
+			if (chatSession.chatMessages.length === 0) {
+				const localStorageKey = `initial_prompt_${id}`;
+				const initialPrompt = localStorage.getItem(localStorageKey);
+				if (initialPrompt !== null) {
+					sendMessage(
+						{ text: initialPrompt },
+						{
+							body: {
+								chatId: id,
+								brandId: selectedBrandId,
+								emailTone: tone,
+								emailPreset: emailPreset,
+							},
+						},
+					);
+					localStorage.removeItem(localStorageKey);
+				}
+			} else {
+				setMessages(
+					chatSession.chatMessages.map(
+						(msg): UIMessage => ({
+							id: msg.id,
+							parts: [{ type: "text", text: msg.message }],
+							role: msg.role === "user" ? "user" : "assistant",
+						}),
+					),
+				);
+			}
+		}
+	}, [
+		chatSession?.chatMessages,
+		isFetchingchatSession,
+		sendMessage,
+		setMessages,
+		id,
+		emailPreset,
+		selectedBrandId,
+		tone,
+		messages.length,
 	]);
 
 	const handleExportJsx = () => {
@@ -92,11 +154,6 @@ function RouteComponent() {
 	};
 
 	const handleSendTest = async () => {
-		if (!user?.email) {
-			toast.error("User email not found");
-			return;
-		}
-
 		if (!previewHtml) {
 			toast.error("No preview content to send");
 			return;
@@ -104,7 +161,7 @@ function RouteComponent() {
 
 		const toastId = toast.loading("Sending test email...");
 		try {
-			await sendTestEmail(previewHtml, user.email);
+			await sendTestEmail({ data: previewHtml });
 			toast.success(`Test email sent to ${user.email}`, { id: toastId });
 		} catch (error) {
 			console.error("Failed to send test email:", error);
@@ -138,7 +195,6 @@ function RouteComponent() {
 							<ResizablePanel defaultSize={40} minSize={30}>
 								<DashboardChatPanel
 									key={id}
-									isLoading={isLoading}
 									chatId={id}
 									setGeneratedCode={setGeneratedCode}
 									input={input}
@@ -149,8 +205,8 @@ function RouteComponent() {
 									setTone={setTone}
 									emailPreset={emailPreset}
 									setEmailPreset={setEmailPreset}
-									chatMessages={chatSession?.chatMessages}
-									isFetchingChatMessages={isFetchingchatSession}
+									messages={messages}
+									sendMessage={sendMessage}
 								/>
 							</ResizablePanel>
 
@@ -172,6 +228,7 @@ function RouteComponent() {
 									isFetchingLatestEmail={isFetchingLatestEmail}
 									previewHtml={previewHtml}
 									onHtmlChange={setPreviewHtml}
+									isStreaming={status === "streaming"}
 								/>
 							</ResizablePanel>
 						</ResizablePanelGroup>

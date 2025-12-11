@@ -19,6 +19,7 @@ interface DashboardPreviewPanelProps {
 	isFetchingLatestEmail: boolean;
 	previewHtml: string;
 	onHtmlChange: (html: string) => void;
+	isStreaming?: boolean;
 }
 
 export function DashboardPreviewPanel({
@@ -36,6 +37,7 @@ export function DashboardPreviewPanel({
 	isFetchingLatestEmail,
 	previewHtml,
 	onHtmlChange,
+	isStreaming,
 }: DashboardPreviewPanelProps) {
 	useEffect(() => {
 		if (!isFetchingLatestEmail && latestEmailCode) {
@@ -71,6 +73,16 @@ export function DashboardPreviewPanel({
 						previewHtml={previewHtml}
 						onHtmlChange={onHtmlChange}
 					/>
+					{isStreaming && (
+						<div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+							<div className="flex flex-col items-center gap-2">
+								<span className="animate-spin text-3xl">⏳</span>
+								<span className="font-medium text-sm">
+									Streaming Response...
+								</span>
+							</div>
+						</div>
+					)}
 				</div>
 
 				<div
@@ -80,7 +92,11 @@ export function DashboardPreviewPanel({
 						viewMode === "code" && "opacity-100",
 					)}
 				>
-					<MonacoEditor code={generatedCode} onChange={setGeneratedCode} />
+					<MonacoEditor
+						code={generatedCode}
+						onChange={setGeneratedCode}
+						isStreaming={isStreaming}
+					/>
 				</div>
 			</div>
 		</div>

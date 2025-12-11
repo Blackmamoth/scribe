@@ -16,7 +16,8 @@ export const env = createEnv({
 		R2_BUCKET_NAME: z.string().min(1),
 		MAX_FILE_SIZE_IN_MB: z.coerce.number().default(5),
 		// RESEND
-		RESEND_API_KEY: z.string().min(1, "resend api key is required"),
+		RESEND_API_KEY: z.string().min(1),
+		RESEND_SENDER_EMAIL: z.email(),
 	},
 	runtimeEnv: process.env,
 });

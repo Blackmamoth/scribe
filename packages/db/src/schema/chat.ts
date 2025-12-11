@@ -27,7 +27,9 @@ export const chat = pgTable("chat", {
 	userId: text("user_id")
 		.notNull()
 		.references(() => user.id, { onDelete: "cascade" }),
-	brandId: uuid("brand_id").references(() => brand.id),
+	brandId: uuid("brand_id").references(() => brand.id, {
+		onDelete: "set null",
+	}),
 	title: text("name").notNull(),
 	tone: emailToneEnum().default("friendly"),
 	preset: emailPresetEnum().default("welcome_series"),

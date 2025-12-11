@@ -1,19 +1,11 @@
-import { type UIMessage, useChat } from "@ai-sdk/react";
+import type { UIMessage } from "@ai-sdk/react";
 import { processScribeMessages } from "@scribe/core/ai/service/chat";
-import type { ChatMessage, EmailPreset, EmailTone } from "@scribe/db/types";
-import { DefaultChatTransport } from "ai";
-import {
-	type Dispatch,
-	type SetStateAction,
-	useEffect,
-	useMemo,
-	useRef,
-} from "react";
+import type { EmailPreset, EmailTone } from "@scribe/db/types";
+import { type Dispatch, type SetStateAction, useEffect, useMemo } from "react";
 import { ChatList } from "@/components/chat/chat-list";
 import { DashboardChatInput } from "./dashboard-chat-input";
 
 interface DashboardChatPanelProps {
-	isLoading: boolean;
 	chatId: string;
 	setGeneratedCode: (code: string) => void;
 	input: string;
@@ -24,12 +16,17 @@ interface DashboardChatPanelProps {
 	setTone: (value: EmailTone) => void;
 	emailPreset: EmailPreset;
 	setEmailPreset: (value: EmailPreset) => void;
-	chatMessages?: ChatMessage[];
-	isFetchingChatMessages: boolean;
+	messages: UIMessage[];
+	sendMessage: (
+		message: { text: string },
+		chatRequestOptions?: {
+			data?: Record<string, string>;
+			body?: object;
+		},
+	) => void;
 }
 
 export function DashboardChatPanel({
-	isLoading,
 	chatId,
 	setGeneratedCode,
 	input,
@@ -40,26 +37,9 @@ export function DashboardChatPanel({
 	setTone,
 	emailPreset,
 	setEmailPreset,
-	chatMessages,
-	isFetchingChatMessages,
+	messages,
+	sendMessage,
 }: DashboardChatPanelProps) {
-	const initializedRef = useRef(false);
-	const { messages, setMessages, sendMessage } = useChat({
-		transport: new DefaultChatTransport({
-			api: "/api/chat",
-			body: {
-				chatId,
-				brandId: selectedBrandId,
-				emailTone: tone,
-				emailPreset: emailPreset,
-			},
-		}),
-		id: chatId,
-		onData: (part) => {
-			console.log(part);
-		},
-	});
-
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
@@ -78,52 +58,7 @@ export function DashboardChatPanel({
 		}
 	};
 
-	useEffect(() => {
-		if (
-			chatMessages !== undefined &&
-			!isFetchingChatMessages &&
-			!initializedRef.current
-		) {
-			initializedRef.current = true;
-			if (chatMessages.length === 0) {
-				const localStorageKey = `initial_prompt_${chatId}`;
-				const initialPrompt = localStorage.getItem(localStorageKey);
-				if (initialPrompt !== null) {
-					sendMessage(
-						{ text: initialPrompt },
-						{
-							body: {
-								chatId,
-								brandId: selectedBrandId,
-								emailTone: tone,
-								emailPreset: emailPreset,
-							},
-						},
-					);
-					localStorage.removeItem(localStorageKey);
-				}
-			} else {
-				setMessages(
-					chatMessages.map(
-						(msg): UIMessage => ({
-							id: msg.id,
-							parts: [{ type: "text", text: msg.message }],
-							role: msg.role === "user" ? "user" : "assistant",
-						}),
-					),
-				);
-			}
-		}
-	}, [
-		chatMessages,
-		isFetchingChatMessages,
-		sendMessage,
-		setMessages,
-		chatId,
-		emailPreset,
-		selectedBrandId,
-		tone,
-	]);
+	// Logic to load initial messages is now handled in the parent route component
 
 	const displayMessages = useMemo(() => {
 		return processScribeMessages(messages);
@@ -147,7 +82,6 @@ export function DashboardChatPanel({
 		<div className="flex h-full flex-col">
 			<ChatList
 				messages={displayMessages}
-				isLoading={isLoading}
 				onRestoreVersion={setGeneratedCode}
 			/>
 			<DashboardChatInput

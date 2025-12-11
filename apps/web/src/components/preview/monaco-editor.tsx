@@ -6,12 +6,14 @@ interface MonacoEditorProps {
 	code: string;
 	onChange: (code: string) => void;
 	language?: string;
+	isStreaming?: boolean;
 }
 
 export function MonacoEditor({
 	code,
 	onChange,
 	language = "typescriptreact",
+	isStreaming,
 }: MonacoEditorProps) {
 	const { theme, systemTheme } = useTheme();
 	const monaco = useMonaco();
@@ -44,7 +46,7 @@ export function MonacoEditor({
 	}
 
 	return (
-		<div className="h-full w-full">
+		<div className="relative h-full w-full">
 			<Editor
 				height="100%"
 				language={language}
@@ -59,9 +61,17 @@ export function MonacoEditor({
 					automaticLayout: true,
 					padding: { top: 16, bottom: 16 },
 					fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-					readOnly: true,
+					readOnly: isStreaming,
 				}}
 			/>
+			{isStreaming && (
+				<div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+					<div className="flex flex-col items-center gap-2">
+						<span className="animate-spin text-3xl">📝</span>
+						<span className="font-medium text-sm">Streaming Code...</span>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

@@ -3,11 +3,13 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Eye, Globe, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import z from "zod";
+import { BrandsDeleteDialog } from "@/components/brands/brands-delete-dialog";
 import { BrandDialog } from "@/components/brands/brands-dialog";
 import { BrandsViewDialog } from "@/components/brands/brands-view-dialog";
 import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -32,7 +34,7 @@ export const Route = createFileRoute("/brands")({
 });
 
 function RouteComponent() {
-	const { brands, isFetching } = useBrand();
+	const { brands, isFetching, deleteBrands, isDeleting } = useBrand();
 
 	const { brandId } = Route.useSearch();
 
@@ -45,8 +47,26 @@ function RouteComponent() {
 	const [selectedBrand, setSelectedBrand] = useState<Brand | undefined>(
 		undefined,
 	);
+	const [selectedBrands, setSelectedBrands] = useState<Brand[]>([]);
+	const [brandsToDelete, setBrandsToDelete] = useState<Brand[] | null>(null);
 
 	const hasRun = useRef(false);
+
+	const handleToggleSelection = (brand: Brand) => {
+		setSelectedBrands((prev) =>
+			prev.some((b) => b.id === brand.id)
+				? prev.filter((b) => b.id !== brand.id)
+				: [...prev, brand],
+		);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (!brandsToDelete) return;
+		const ids = brandsToDelete.map((b) => b.id);
+		await deleteBrands(ids);
+		setSelectedBrands((prev) => prev.filter((b) => !ids.includes(b.id)));
+		setBrandsToDelete(null);
+	};
 
 	const handleEdit = useCallback((brand: Brand) => {
 		setSelectedBrand(brand);
@@ -84,18 +104,42 @@ function RouteComponent() {
 							Manage your brand assets and identities.
 						</p>
 					</div>
-					{!brands ||
-						(brands.length > 0 && (
-							<Button onClick={handleCreate}>
-								<Plus className="mr-2 h-4 w-4" />
-								Add Brand
+					<div className="flex items-center gap-2">
+						{selectedBrands.length > 0 && (
+							<Button
+								variant="destructive"
+								onClick={() => setBrandsToDelete(selectedBrands)}
+							>
+								<Trash2 className="mr-2 h-4 w-4" />
+								Delete Selected ({selectedBrands.length})
 							</Button>
-						))}
+						)}
+						{!brands ||
+							(brands.length > 0 && (
+								<Button onClick={handleCreate}>
+									<Plus className="mr-2 h-4 w-4" />
+									Add Brand
+								</Button>
+							))}
+					</div>
 				</div>
 
 				<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 					{brands?.map((brand) => (
-						<Card key={brand.id} className="overflow-hidden">
+						<Card key={brand.id} className="group relative overflow-hidden">
+							<div
+								className={`absolute top-2 left-2 z-10 ${
+									selectedBrands.some((b) => b.id === brand.id)
+										? "opacity-100"
+										: "opacity-0 group-hover:opacity-100"
+								} transition-opacity`}
+							>
+								<Checkbox
+									className="border-muted-foreground/50 bg-background/50 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+									checked={selectedBrands.some((b) => b.id === brand.id)}
+									onCheckedChange={() => handleToggleSelection(brand)}
+								/>
+							</div>
 							<CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
 								<div className="flex items-center gap-3">
 									{brand.logoUrl ? (
@@ -132,17 +176,23 @@ function RouteComponent() {
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end">
-										<DropdownMenuItem onClick={() => handleView(brand)}>
+										<DropdownMenuItem
+											className="cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-800"
+											onClick={() => handleView(brand)}
+										>
 											<Eye className="mr-2 h-4 w-4" />
 											View
 										</DropdownMenuItem>
-										<DropdownMenuItem onClick={() => handleEdit(brand)}>
+										<DropdownMenuItem
+											className="cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-800"
+											onClick={() => handleEdit(brand)}
+										>
 											<Pencil className="mr-2 h-4 w-4" />
 											Edit
 										</DropdownMenuItem>
 										<DropdownMenuItem
-											className="text-red-600"
-											// onClick={() => deleteBrand(brand.id)}
+											className="cursor-pointer text-red-600 focus:bg-red-100 focus:text-red-600 dark:focus:bg-red-900/20"
+											onClick={() => setBrandsToDelete([brand])}
 										>
 											<Trash2 className="mr-2 h-4 w-4" />
 											Delete
@@ -191,6 +241,14 @@ function RouteComponent() {
 						brand={selectedBrand}
 					/>
 				)}
+
+				<BrandsDeleteDialog
+					open={!!brandsToDelete}
+					onOpenChange={(open) => !open && setBrandsToDelete(null)}
+					brandsToDelete={brandsToDelete}
+					onConfirm={handleConfirmDelete}
+					isDeleting={isDeleting}
+				/>
 			</div>
 		</AuthenticatedLayout>
 	);

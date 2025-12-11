@@ -30,7 +30,16 @@ export function BrandDialog({
 	brand,
 	mode,
 }: BrandDialogProps) {
-	const { createBrand, uploadBrand, isUploading, isCreating } = useBrand();
+	const {
+		createBrand,
+		uploadBrand,
+		isUploading,
+		isCreating,
+		updateBrand,
+		isUpdating,
+	} = useBrand();
+
+	const originalLogoUrl = brand?.logoUrl || "";
 
 	const form = useForm({
 		defaultValues: {
@@ -44,21 +53,36 @@ export function BrandDialog({
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				let logoUrl = "";
+				let logoUrl: string | null = "";
+
 				if (value.logo) {
 					const formData = new FormData();
 					formData.append("logo", value.logo);
 					logoUrl = await uploadBrand(formData);
+				} else if (value.logoUrl === "" && originalLogoUrl !== "") {
+					logoUrl = null;
 				}
 
-				await createBrand({
-					name: value.name,
-					logoUrl: logoUrl,
-					websiteUrl: value.websiteUrl ?? "",
-					tagline: value.tagline ?? "",
-					primaryColor: value.primaryColor,
-					secondaryColor: value.secondaryColor,
-				});
+				if (mode === "create") {
+					await createBrand({
+						name: value.name,
+						logoUrl: logoUrl,
+						websiteUrl: value.websiteUrl,
+						tagline: value.tagline,
+						primaryColor: value.primaryColor,
+						secondaryColor: value.secondaryColor,
+					});
+				} else {
+					await updateBrand({
+						id: brand?.id ?? "",
+						name: value.name,
+						logoUrl: logoUrl,
+						websiteUrl: value.websiteUrl,
+						tagline: value.tagline,
+						primaryColor: value.primaryColor,
+						secondaryColor: value.secondaryColor,
+					});
+				}
 
 				onOpenChange(false);
 			} catch (error) {
@@ -347,7 +371,10 @@ export function BrandDialog({
 					</div>
 
 					<DialogFooter>
-						<Button disabled={isUploading || isCreating} type="submit">
+						<Button
+							disabled={isUploading || isCreating || isUpdating}
+							type="submit"
+						>
 							{brand ? "Save Changes" : "Create Brand"}
 						</Button>
 					</DialogFooter>

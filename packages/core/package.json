@@ -29,6 +29,7 @@
 		"ai": "catalog:",
 		"dotenv": "catalog:",
 		"ioredis": "^5.8.2",
+		"resend": "^6.6.0",
 		"zod": "^4.1.13"
 	}
 }

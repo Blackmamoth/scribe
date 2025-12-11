@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { handleChat, parseScribeResponse } from "@scribe/core/ai/service/chat";
 import { chatSchema } from "@scribe/core/validation";
 import { db, eq } from "@scribe/db";
@@ -35,9 +36,27 @@ export const Route = createFileRoute("/api/chat")({
 						throw new Error("messages are required");
 					}
 
+					const { chatId, brandId } = data;
+
 					const latestUserMessage = messages.slice(-1)[0];
 
-					const { chatId, brandId } = data;
+					const latestVersion = await db.query.emailVersions.findFirst({
+						where: (emailVersions, { eq }) => eq(emailVersions.chatId, chatId),
+						orderBy: (emailVersions, { desc }) => desc(emailVersions.version),
+					});
+
+					if (latestVersion) {
+						messages.splice(messages.length - 1, 0, {
+							id: crypto.randomUUID(),
+							role: "system",
+							parts: [
+								{
+									type: "text",
+									text: `Here is the current email code (version ${latestVersion.version}) that you should modify:\n\n${latestVersion.code}`,
+								},
+							],
+						});
+					}
 
 					const chatExists = await db.query.chat.findFirst({
 						where: (chats, { and, eq }) =>
@@ -98,13 +117,6 @@ export const Route = createFileRoute("/api/chat")({
 
 								if (code?.trim()) {
 									let version = 1;
-
-									const latestVersion = await tx.query.emailVersions.findFirst({
-										where: (emailVersions, { eq }) =>
-											eq(emailVersions.chatId, chatId),
-										orderBy: (emailVersions, { desc }) =>
-											desc(emailVersions.version),
-									});
 
 									version += latestVersion?.version ?? 0;
 
