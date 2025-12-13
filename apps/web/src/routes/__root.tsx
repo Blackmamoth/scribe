@@ -82,7 +82,7 @@ function RootDocument() {
 						<WebContainerProvider>
 							<Outlet />
 							<Toaster richColors />
-							<TanStackRouterDevtools position="bottom-left" />
+							<TanStackRouterDevtools position="bottom-right" />
 							<Scripts />
 						</WebContainerProvider>
 					</QueryClientProvider>

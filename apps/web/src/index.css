@@ -133,3 +133,69 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+/* Custom scrollbar styling for sidebar */
+.sidebar-content {
+	scrollbar-width: thin;
+	scrollbar-color: transparent transparent;
+	transition: scrollbar-color 0.2s ease;
+}
+
+.sidebar-content:hover {
+	scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+}
+
+.sidebar-content::-webkit-scrollbar {
+	width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+	background: transparent;
+	border-radius: 3px;
+	transition: background 0.2s ease;
+}
+
+.sidebar-content:hover::-webkit-scrollbar-thumb {
+	background: hsl(var(--muted-foreground) / 0.3);
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+	background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Custom scrollbar styling for chats container only */
+.chats-scroll-container {
+	scrollbar-width: thin;
+	scrollbar-color: transparent transparent;
+	transition: scrollbar-color 0.2s ease;
+}
+
+.chats-scroll-container:hover {
+	scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+}
+
+.chats-scroll-container::-webkit-scrollbar {
+	width: 6px;
+}
+
+.chats-scroll-container::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.chats-scroll-container::-webkit-scrollbar-thumb {
+	background: transparent;
+	border-radius: 3px;
+	transition: background 0.2s ease;
+}
+
+.chats-scroll-container:hover::-webkit-scrollbar-thumb {
+	background: hsl(var(--muted-foreground) / 0.3);
+}
+
+.chats-scroll-container::-webkit-scrollbar-thumb:hover {
+	background: hsl(var(--muted-foreground) / 0.5);
+}

@@ -1,6 +1,13 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LogOut, MoreHorizontal, Plus, Settings, Trash2 } from "lucide-react";
-import { useState } from "react";
+import {
+	Loader2,
+	LogOut,
+	MoreHorizontal,
+	Plus,
+	Settings,
+	Trash2,
+} from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -12,6 +19,7 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -42,7 +50,15 @@ import { authClient } from "@/lib/auth-client";
 export function AppSidebar() {
 	const { brands } = useBrand();
 
-	const { chats } = useScribeChat();
+	const {
+		chats,
+		isFetchingChats,
+		isFetchingMoreChats,
+		hasMore,
+		fetchMoreChats,
+		deleteChat,
+		isDeleting,
+	} = useScribeChat();
 
 	const { data } = authClient.useSession();
 
@@ -50,14 +66,44 @@ export function AppSidebar() {
 	const { location } = useRouterState();
 
 	const [deleteId, setDeleteId] = useState<string | null>(null);
+	const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-	const handleDelete = () => {
-		if (deleteId) {
-			console.log("Deleting chat:", deleteId);
-			// Mock delete logic
+	const handleDelete = async () => {
+		if (!deleteId) return;
+
+		try {
+			await deleteChat(deleteId);
+
+			// Navigate to home if deleting currently active chat
+			if (location.pathname === `/chat/${deleteId}`) {
+				navigate({ to: "/" });
+			}
+
 			setDeleteId(null);
+		} catch (_error) {
+			// Error handled by mutation
 		}
 	};
+
+	const handleScroll = useCallback(() => {
+		if (!scrollContainerRef.current || !hasMore || isFetchingMoreChats) return;
+
+		const { scrollTop, scrollHeight, clientHeight } =
+			scrollContainerRef.current;
+		const threshold = 100; // Load more when 100px from bottom
+
+		if (scrollTop + clientHeight >= scrollHeight - threshold) {
+			fetchMoreChats();
+		}
+	}, [hasMore, isFetchingMoreChats, fetchMoreChats]);
+
+	useEffect(() => {
+		const scrollContainer = scrollContainerRef.current;
+		if (!scrollContainer) return;
+
+		scrollContainer.addEventListener("scroll", handleScroll);
+		return () => scrollContainer.removeEventListener("scroll", handleScroll);
+	}, [handleScroll]);
 
 	return (
 		<Sidebar collapsible="icon">
@@ -67,8 +113,9 @@ export function AppSidebar() {
 				</div>
 				<SidebarTrigger className="ml-auto group-data-[collapsible=icon]:ml-0" />
 			</SidebarHeader>
-			<SidebarContent className="px-2">
-				<SidebarMenu>
+			<SidebarContent className="flex flex-col px-2">
+				{/* New Chat Button - Fixed at top */}
+				<SidebarMenu className="flex-shrink-0">
 					<SidebarMenuItem>
 						<SidebarMenuButton
 							onClick={() => navigate({ to: "/" })}
@@ -82,58 +129,113 @@ export function AppSidebar() {
 						</SidebarMenuButton>
 					</SidebarMenuItem>
 				</SidebarMenu>
-				<SidebarGroup className="group-data-[collapsible=icon]:hidden">
-					<SidebarGroupLabel className="px-2 font-medium text-muted-foreground text-xs">
-						Recent Chats
-					</SidebarGroupLabel>
-					<SidebarGroupContent>
-						<SidebarMenu>
-							{chats?.map((chat) => (
-								<SidebarMenuItem key={chat.id}>
-									<SidebarMenuButton
-										asChild
-										className="h-9"
-										tooltip={chat.title}
-										isActive={location.pathname === `/chat/${chat.id}`}
-									>
-										<Link
-											to={"/chat/$id"}
-											params={{ id: chat.id }}
-											className="flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground"
-										>
-											<span className="truncate group-data-[collapsible=icon]:hidden">
-												{chat.title}
-											</span>
-										</Link>
-									</SidebarMenuButton>
-									<DropdownMenu>
-										<DropdownMenuTrigger asChild>
-											<SidebarMenuAction showOnHover>
-												<MoreHorizontal className="h-4 w-4" />
-												<span className="sr-only">More</span>
-											</SidebarMenuAction>
-										</DropdownMenuTrigger>
-										<DropdownMenuContent
-											className="w-48 rounded-lg"
-											side="bottom"
-											align="end"
-										>
-											<DropdownMenuItem
-												onClick={() => setDeleteId(chat.id)}
-												className="text-red-500 focus:bg-red-50 focus:text-red-500"
-											>
-												<Trash2 className="mr-2 h-4 w-4" />
-												<span>Delete Chat</span>
-											</DropdownMenuItem>
-										</DropdownMenuContent>
-									</DropdownMenu>
-								</SidebarMenuItem>
-							))}
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
 
-				<SidebarGroup className="group-data-[collapsible=icon]:hidden">
+				{/* Chats Section - Scrollable */}
+				<div className="min-h-0 flex-1">
+					<SidebarGroup className="flex h-full flex-col group-data-[collapsible=icon]:hidden">
+						<SidebarGroupLabel className="flex-shrink-0 px-2 font-medium text-muted-foreground text-xs">
+							Recent Chats
+						</SidebarGroupLabel>
+						<SidebarGroupContent className="min-h-0 flex-1">
+							<div
+								className="chats-scroll-container h-full overflow-auto"
+								ref={scrollContainerRef}
+							>
+								<SidebarMenu>
+									{isFetchingChats && !chats.length ? (
+										// Initial loading skeleton
+										Array.from({ length: 5 }).map((_, index) => (
+											<SidebarMenuItem
+												key={`chat-skeleton-loading-${Date.now()}-${index}`}
+											>
+												<div className="flex h-9 items-center gap-2 px-2">
+													<div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+												</div>
+											</SidebarMenuItem>
+										))
+									) : chats.length === 0 && !isFetchingChats ? (
+										// Empty state
+										<SidebarMenuItem>
+											<div className="px-2 py-1.5 text-muted-foreground text-xs">
+												No chats yet
+											</div>
+										</SidebarMenuItem>
+									) : (
+										<>
+											{chats?.map((chat) => (
+												<SidebarMenuItem key={chat.id}>
+													<SidebarMenuButton
+														asChild
+														className="h-9"
+														tooltip={chat.title}
+														isActive={location.pathname === `/chat/${chat.id}`}
+													>
+														<Link
+															to={"/chat/$id"}
+															params={{ id: chat.id }}
+															className="flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground"
+														>
+															<span className="truncate group-data-[collapsible=icon]:hidden">
+																{chat.title}
+															</span>
+														</Link>
+													</SidebarMenuButton>
+													<DropdownMenu>
+														<DropdownMenuTrigger asChild>
+															<SidebarMenuAction showOnHover>
+																<MoreHorizontal className="h-4 w-4" />
+																<span className="sr-only">More</span>
+															</SidebarMenuAction>
+														</DropdownMenuTrigger>
+														<DropdownMenuContent
+															className="w-48 rounded-lg"
+															side="bottom"
+															align="end"
+														>
+															<DropdownMenuItem
+																onClick={() => setDeleteId(chat.id)}
+																className="text-red-500 focus:bg-red-50 focus:text-red-500"
+															>
+																<Trash2 className="mr-2 h-4 w-4" />
+																<span>Delete Chat</span>
+															</DropdownMenuItem>
+														</DropdownMenuContent>
+													</DropdownMenu>
+												</SidebarMenuItem>
+											))}
+
+											{/* Loading indicator for more chats */}
+											{isFetchingMoreChats && (
+												<SidebarMenuItem>
+													<div className="flex items-center justify-center py-2">
+														<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+													</div>
+												</SidebarMenuItem>
+											)}
+
+											{/* Load more button fallback */}
+											{!isFetchingMoreChats && hasMore && chats.length > 0 && (
+												<SidebarMenuItem>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={fetchMoreChats}
+														className="h-8 w-full justify-start text-muted-foreground hover:text-foreground"
+													>
+														Load more chats
+													</Button>
+												</SidebarMenuItem>
+											)}
+										</>
+									)}
+								</SidebarMenu>
+							</div>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				</div>
+
+				{/* Brands Section - Fixed at bottom */}
+				<SidebarGroup className="flex-shrink-0 group-data-[collapsible=icon]:hidden">
 					<SidebarGroupLabel className="flex items-center justify-between px-2 font-medium text-muted-foreground text-xs">
 						Brands
 						<Link
@@ -275,9 +377,17 @@ export function AppSidebar() {
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDelete}
+							disabled={isDeleting}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 						>
-							Delete
+							{isDeleting ? (
+								<>
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									Deleting...
+								</>
+							) : (
+								"Delete"
+							)}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
