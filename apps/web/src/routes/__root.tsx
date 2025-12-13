@@ -14,6 +14,8 @@ import "@fontsource/inter/400.css";
 import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ThemeProvider } from "next-themes";
 import { NotFound } from "@/components/not-found";
 import { WebContainerProvider } from "@/context/webcontainer";
@@ -82,7 +84,12 @@ function RootDocument() {
 						<WebContainerProvider>
 							<Outlet />
 							<Toaster richColors />
-							<TanStackRouterDevtools position="bottom-right" />
+
+							{!import.meta.env.PROD && (
+								<TanStackRouterDevtools position="bottom-right" />
+							)}
+							<Analytics />
+							<SpeedInsights />
 							<Scripts />
 						</WebContainerProvider>
 					</QueryClientProvider>
