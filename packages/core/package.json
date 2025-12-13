@@ -10,6 +10,9 @@
 		"./ai": {
 			"default": "./src/ai/index.ts"
 		},
+		"./email": {
+			"default": "./src/email/index.ts"
+		},
 		"./*": {
 			"default": "./src/*.ts"
 		}
@@ -17,7 +20,8 @@
 	"type": "module",
 	"scripts": {},
 	"devDependencies": {
-		"@scribe/config": "workspace:*"
+		"@scribe/config": "workspace:*",
+		"@types/react": "~19.1.17"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
@@ -25,10 +29,12 @@
 	"dependencies": {
 		"@ai-sdk/openai": "^2.0.77",
 		"@aws-sdk/client-s3": "^3.946.0",
+		"@react-email/components": "^1.0.1",
 		"@t3-oss/env-core": "^0.13.8",
 		"ai": "catalog:",
 		"dotenv": "catalog:",
 		"ioredis": "^5.8.2",
+		"react": "19.1.2",
 		"resend": "^6.6.0",
 		"zod": "^4.1.13"
 	}

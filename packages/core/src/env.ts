@@ -5,7 +5,7 @@ import "dotenv/config";
 export const env = createEnv({
 	server: {
 		DATABASE_URL: z.url(),
-		REDIS_URL: z.url(),
+		REDIS_URL: z.url().optional(),
 		CORS_ORIGIN: z.url(),
 		// CLOUDFLARE
 		CLOUDFLARE_ACCOUNT_ID: z.string().min(1),
@@ -18,6 +18,14 @@ export const env = createEnv({
 		// RESEND
 		RESEND_API_KEY: z.string().min(1),
 		RESEND_SENDER_EMAIL: z.email(),
+		// GOOGLE OAUTH
+		GOOGLE_CLIENT_ID: z.string().min(1),
+		GOOGLE_CLIENT_SECRET: z.string().min(1),
+		GOOGLE_REDIRECT_URI: z.url(),
+		// GITHUB OAUTH
+		GITHUB_CLIENT_ID: z.string().min(1),
+		GITHUB_CLIENT_SECRET: z.string().min(1),
+		GITHUB_REDIRECT_URI: z.url(),
 	},
 	runtimeEnv: process.env,
 });

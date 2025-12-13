@@ -45,7 +45,6 @@ export function SignupForm() {
 					name: value.name,
 					email: value.email,
 					password: value.password,
-					callbackURL: "/",
 				},
 				{
 					onSuccess: () => {
@@ -173,7 +172,7 @@ export function SignupForm() {
 						</div>
 					</div>
 
-					<SocialLogin />
+					<SocialLogin isLoading={isLoading} setIsLoading={setIsLoading} />
 
 					<p className="text-center text-muted-foreground text-sm">
 						Already have an account?{" "}

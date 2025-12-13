@@ -54,7 +54,7 @@ export function SigninForm() {
 						if (ctx.error.message === "Email not verified") {
 							const { error } = await authClient.emailOtp.sendVerificationOtp({
 								email: value.email,
-								type: "sign-in",
+								type: "email-verification",
 							});
 
 							if (error !== null) {
@@ -137,7 +137,7 @@ export function SigninForm() {
 									<div className="flex items-center justify-between">
 										<Label htmlFor="password">Password</Label>
 										<Link
-											to="."
+											to="/forgot-password"
 											className="text-primary text-sm hover:underline"
 										>
 											Forgot password?
@@ -179,7 +179,7 @@ export function SigninForm() {
 						</div>
 					</div>
 
-					<SocialLogin />
+					<SocialLogin isLoading={isLoading} setIsLoading={setIsLoading} />
 
 					<p className="text-center text-muted-foreground text-sm">
 						Don't have an account?{" "}
