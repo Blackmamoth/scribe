@@ -17,7 +17,7 @@ export function useScribeChat(chatId?: string) {
 	const [hasMore, setHasMore] = useState(true);
 
 	const createChatMutation = useMutation({
-		mutationFn: async ({
+		mutationFn: ({
 			prompt,
 			brandId,
 			tone,
@@ -27,116 +27,92 @@ export function useScribeChat(chatId?: string) {
 			brandId?: string | null;
 			tone?: EmailTone;
 			preset?: EmailPreset;
-		}) => {
-			return await createChat({
+		}) =>
+			createChat({
 				data: { prompt, brandId, emailTone: tone, emailPreset: preset },
-			});
-		},
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["chats"] });
 			setOffset(0);
 			setAllChats([]);
 			setHasMore(true);
 		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
+		onError: (error) => toast.error(error.message),
 	});
 
 	const deleteChatMutation = useMutation({
-		mutationFn: async (chatId: string) => {
-			return await deleteChat({ data: chatId });
-		},
+		mutationFn: (chatIdToDelete: string) =>
+			deleteChat({ data: chatIdToDelete }),
 		onSuccess: (data) => {
-			// Remove chat from local state after server confirmation
-			const chatId = data[0].id;
+			const deletedChatId = data[0].id;
 
-			setAllChats((prev) => prev.filter((chat) => chat.id !== chatId));
+			setAllChats((prev) => prev.filter((chat) => chat.id !== deletedChatId));
 
-			// Handle empty page scenario
 			const currentChatCount = allChats.filter(
-				(chat) => chat.id !== chatId,
+				(chat) => chat.id !== deletedChatId,
 			).length;
 			if (currentChatCount === 0 && offset > 0) {
-				// Fetch previous page if current page becomes empty
 				const newOffset = Math.max(0, offset - 10);
 				setOffset(newOffset);
 			}
 
 			toast.success("Chat deleted successfully");
 		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
+		onError: (error) => toast.error(error.message),
 	});
 
-	const chatSession = useQuery({
+	const chatSessionQuery = useQuery({
 		queryKey: ["chat", "session", chatId],
-		queryFn: async () => {
-			const chatSession = await getChatSession({ data: chatId || "" });
-
-			return chatSession;
-		},
+		queryFn: () => getChatSession({ data: chatId || "" }),
 		enabled: !!chatId,
 	});
 
-	const getEmailCode = useQuery({
+	const emailCodeQuery = useQuery({
 		queryKey: ["chat", "email_code", chatId],
-		queryFn: async () => {
-			const emailCode = await getLatestEmailCode({ data: chatId || "" });
-
-			return emailCode;
-		},
+		queryFn: () => getLatestEmailCode({ data: chatId || "" }),
 		enabled: !!chatId,
 	});
 
-	const chats = useQuery({
+	const chatsQuery = useQuery({
 		queryKey: ["chats", offset],
-		queryFn: async () => {
-			const chats = await getRecentChats({ data: { limit: 10, offset } });
-			return chats;
-		},
+		queryFn: () => getRecentChats({ data: { limit: 10, offset } }),
 		enabled: hasMore,
 	});
 
 	const fetchMoreChats = useCallback(() => {
-		if (!hasMore || chats.isFetching) return;
+		if (!hasMore || chatsQuery.isFetching) return;
+		setOffset(offset + 10);
+	}, [offset, hasMore, chatsQuery.isFetching]);
 
-		const newOffset = offset + 10;
-		setOffset(newOffset);
-	}, [offset, hasMore, chats.isFetching]);
-
-	// Update allChats when new data is fetched
 	useEffect(() => {
-		if (chats.data) {
+		if (chatsQuery.data) {
 			if (offset === 0) {
-				setAllChats(chats.data);
+				setAllChats(chatsQuery.data);
 			} else {
-				setAllChats((prev) => [...prev, ...chats.data]);
+				setAllChats((prev) => [...prev, ...chatsQuery.data]);
 			}
 
-			// Check if there are more chats to load
-			if (chats.data.length < 10) {
+			if (chatsQuery.data.length < 10) {
 				setHasMore(false);
 			}
 		}
-	}, [chats.data, offset]);
+	}, [chatsQuery.data, offset]);
 
 	return {
 		chats: allChats,
-		isFetchingChats: chats.isFetching,
-		isFetchingMoreChats: chats.isFetching && offset > 0,
+		isFetchingChats: chatsQuery.isFetching,
+		isFetchingMoreChats: chatsQuery.isFetching && offset > 0,
 		hasMore,
 		fetchMoreChats,
 		createChat: createChatMutation.mutateAsync,
 		isCreating: createChatMutation.isPending,
 		deleteChat: deleteChatMutation.mutateAsync,
 		isDeleting: deleteChatMutation.isPending,
-		chatSession: chatSession.data,
-		isFetchingchatSession: chatSession.isFetching,
-		isLoadingchatSession: chatSession.isLoading,
-		latestEmailCode: getEmailCode.data,
-		isFetchingLatestEmail: getEmailCode.isFetching,
-		isLoadingLatestEmail: getEmailCode.isLoading,
+		chatSession: chatSessionQuery.data,
+		isFetchingChatSession: chatSessionQuery.isFetching,
+		isLoadingChatSession: chatSessionQuery.isLoading,
+		latestEmailCode: emailCodeQuery.data,
+		isFetchingLatestEmail: emailCodeQuery.isFetching,
+		isLoadingLatestEmail: emailCodeQuery.isLoading,
 	};
 }

@@ -2,8 +2,8 @@ import * as z from "zod";
 
 export const brandSchema = z.object({
 	name: z.string().min(1, "brand name is required"),
-	logoUrl: z.url().nullish(),
-	websiteUrl: z.url().nullish(),
+	logoUrl: z.url().nullish().or(z.literal("")),
+	websiteUrl: z.url().nullish().or(z.literal("")),
 	tagline: z.string().nullish(),
 	primaryColor: z
 		.string()

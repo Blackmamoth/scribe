@@ -53,13 +53,13 @@ export function BrandDialog({
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				let logoUrl: string | null = "";
+				let logoUrl: string | null = originalLogoUrl || null;
 
 				if (value.logo) {
 					const formData = new FormData();
 					formData.append("logo", value.logo);
 					logoUrl = await uploadBrand(formData);
-				} else if (value.logoUrl === "" && originalLogoUrl !== "") {
+				} else if (value.logoUrl === null || value.logoUrl === "") {
 					logoUrl = null;
 				}
 

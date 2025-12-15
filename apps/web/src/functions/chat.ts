@@ -19,12 +19,10 @@ export const getChat = createServerFn({ method: "GET" })
 
 		const userId = context.session.user.id;
 
-		const chat = await db.query.chat.findFirst({
+		return await db.query.chat.findFirst({
 			where: (chats, { and, eq }) =>
 				and(eq(chats.userId, userId), eq(chats.id, data.id)),
 		});
-
-		return chat;
 	});
 
 export const createChat = createServerFn({ method: "POST" })
@@ -36,10 +34,7 @@ export const createChat = createServerFn({ method: "POST" })
 		}
 
 		const userId = context.session.user.id;
-
 		const chatTitle = await generateChatTitle(data.prompt);
-
-		let chatId = "";
 
 		const [newChat] = await db
 			.insert(chat)
@@ -56,9 +51,7 @@ export const createChat = createServerFn({ method: "POST" })
 			throw new Error("Failed to create chat, please try again!");
 		}
 
-		chatId = newChat.chatId;
-
-		return chatId;
+		return newChat.chatId;
 	});
 
 export const getRecentChats = createServerFn({

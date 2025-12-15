@@ -45,34 +45,28 @@ export const uploadBrandLogo = createServerFn({ method: "POST" })
 				`file too large. maximum size is ${env.MAX_FILE_SIZE_IN_MB}MB`,
 			);
 		}
-		return {
-			logo,
-		};
+		return { logo };
 	})
 	.handler(async ({ context, data }) => {
 		if (!context.session) {
 			throw new Error("unauthenticated");
 		}
-
-		const logo = data.logo;
+		const { logo } = data;
 
 		const arrayBuffer = await logo.arrayBuffer();
 		const buffer = Buffer.from(arrayBuffer);
 
 		const fileExt = path.extname(logo.name);
-
 		const fileName = `${crypto.randomUUID()}${fileExt}`;
 
-		const logoUrl = await uploadToR2(fileName, buffer, logo.type);
-
-		return logoUrl;
+		return await uploadToR2(fileName, buffer, logo.type);
 	});
 
 export const createBrand = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator(brandSchema)
 	.handler(async ({ context, data }) => {
-		if (context.session === null) {
+		if (!context.session) {
 			throw new Error("unauthenticated");
 		}
 
@@ -91,7 +85,7 @@ export const createBrand = createServerFn({ method: "POST" })
 			.insert(brand)
 			.values({
 				name: data.name,
-				userId: userId,
+				userId,
 				logoUrl: data.logoUrl,
 				websiteUrl: data.websiteUrl,
 				tagline: data.tagline,
@@ -107,32 +101,30 @@ export const getBrands = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.inputValidator(getBrandSchema)
 	.handler(async ({ context, data }) => {
-		if (context.session === null) {
+		if (!context.session) {
 			throw new Error("unauthenticated");
 		}
 
 		const userId = context.session.user.id;
 
-		const brands = await db.query.brand.findMany({
+		return await db.query.brand.findMany({
 			where: (brands, { eq }) => eq(brands.userId, userId),
 			limit: data.limit ?? 10,
 			offset: data.offset ?? 0,
 			orderBy: (brands, { asc }) => [asc(brands.id)],
 		});
-
-		return brands;
 	});
 
 export const updateBrand = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator(updateBrandSchema)
 	.handler(async ({ context, data }) => {
-		if (context.session === null) {
+		if (!context.session) {
 			throw new Error("unauthenticated");
 		}
 
 		const userId = context.session.user.id;
-		const brandId = data.brandId;
+		const { brandId } = data;
 
 		const brandExists = await db.query.brand.findFirst({
 			where: (brands, { eq, and }) =>
@@ -143,18 +135,10 @@ export const updateBrand = createServerFn({ method: "POST" })
 			throw new Error(`brand with id '${brandId} does not exist'`);
 		}
 
-		const nullableFields = new Set(["logoUrl", "websiteUrl", "tagline"]);
-
 		const updateDetails = Object.fromEntries(
 			Object.entries(data).filter(([key, value]) => {
 				if (key === "brandId") return false;
-
 				if (value === undefined) return false;
-
-				if (value === null && !nullableFields.has(key)) {
-					throw new Error(`Field '${key}' cannot be null`);
-				}
-
 				return true;
 			}),
 		);
@@ -163,7 +147,7 @@ export const updateBrand = createServerFn({ method: "POST" })
 			return brandExists;
 		}
 
-		await db
+		return await db
 			.update(brand)
 			.set(updateDetails)
 			.where(eq(brand.id, brandId))
@@ -174,7 +158,7 @@ export const deleteBrand = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator(deleteBrandSchema)
 	.handler(async ({ context, data }) => {
-		if (context.session === null) {
+		if (!context.session) {
 			throw new Error("unauthenticated");
 		}
 
@@ -189,8 +173,6 @@ export const deleteBrand = createServerFn({ method: "POST" })
 		if (!brands || brands.length !== brandIds.length) {
 			throw new Error("Invalid brand ids");
 		}
-
-		console.log(brandIds);
 
 		await db.delete(brand).where(inArray(brand.id, brandIds));
 	});
