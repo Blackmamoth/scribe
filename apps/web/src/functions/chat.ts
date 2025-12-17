@@ -78,17 +78,18 @@ export const getRecentChats = createServerFn({
 
 export const getChatSession = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator(z.uuid())
+	.inputValidator(z.object({ id: z.uuid() }))
 	.handler(async ({ context, data }) => {
 		if (!context.session) {
 			throw new Error("Unauthenticated");
 		}
 
 		const userId = context.session.user.id;
+		const chatId = data.id;
 
 		const chat = await db.query.chat.findFirst({
 			where: (chats, { and, eq }) =>
-				and(eq(chats.userId, userId), eq(chats.id, data)),
+				and(eq(chats.userId, userId), eq(chats.id, chatId)),
 		});
 
 		if (!chat) {
@@ -110,17 +111,18 @@ export const getChatSession = createServerFn({ method: "POST" })
 
 export const getLatestEmailCode = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator(z.uuid())
+	.inputValidator(z.object({ id: z.uuid() }))
 	.handler(async ({ context, data }) => {
 		if (!context.session) {
 			throw new Error("Unauthenticated");
 		}
 
 		const userId = context.session.user.id;
+		const chatId = data.id;
 
 		const chat = await db.query.chat.findFirst({
 			where: (chats, { and, eq }) =>
-				and(eq(chats.userId, userId), eq(chats.id, data)),
+				and(eq(chats.userId, userId), eq(chats.id, chatId)),
 		});
 
 		if (!chat) {
@@ -137,17 +139,18 @@ export const getLatestEmailCode = createServerFn({ method: "POST" })
 
 export const deleteChat = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator(z.uuid())
+	.inputValidator(z.object({ id: z.uuid() }))
 	.handler(async ({ context, data }) => {
 		if (!context.session) {
 			throw new Error("Unauthenticated");
 		}
 
 		const userId = context.session.user.id;
+		const chatId = data.id;
 
 		const chatExists = await db.query.chat.findFirst({
 			where: (chats, { and, eq }) =>
-				and(eq(chats.userId, userId), eq(chats.id, data)),
+				and(eq(chats.userId, userId), eq(chats.id, chatId)),
 		});
 
 		if (!chatExists) {
@@ -156,6 +159,6 @@ export const deleteChat = createServerFn({ method: "POST" })
 
 		return await db
 			.delete(chat)
-			.where(and(eq(chat.userId, userId), eq(chat.id, data)))
+			.where(and(eq(chat.userId, userId), eq(chat.id, chatId)))
 			.returning();
 	});

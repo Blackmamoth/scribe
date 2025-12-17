@@ -41,8 +41,7 @@ export function useScribeChat(chatId?: string) {
 	});
 
 	const deleteChatMutation = useMutation({
-		mutationFn: (chatIdToDelete: string) =>
-			deleteChat({ data: chatIdToDelete }),
+		mutationFn: (id: string) => deleteChat({ data: { id } }),
 		onSuccess: (data) => {
 			const deletedChatId = data[0].id;
 
@@ -63,13 +62,13 @@ export function useScribeChat(chatId?: string) {
 
 	const chatSessionQuery = useQuery({
 		queryKey: ["chat", "session", chatId],
-		queryFn: () => getChatSession({ data: chatId || "" }),
+		queryFn: () => getChatSession({ data: { id: chatId || "" } }),
 		enabled: !!chatId,
 	});
 
 	const emailCodeQuery = useQuery({
 		queryKey: ["chat", "email_code", chatId],
-		queryFn: () => getLatestEmailCode({ data: chatId || "" }),
+		queryFn: () => getLatestEmailCode({ data: { id: chatId || "" } }),
 		enabled: !!chatId,
 	});
 

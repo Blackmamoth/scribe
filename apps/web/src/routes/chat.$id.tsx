@@ -41,17 +41,17 @@ export const Route = createFileRoute("/chat/$id")({
 });
 
 function RouteComponent() {
-	const { id } = Route.useParams();
+	const { id: chatId } = Route.useParams();
 
 	const { user } = Route.useRouteContext();
 
 	const {
 		chatSession,
-		isFetchingchatSession,
-		isLoadingchatSession,
+		isFetchingChatSession,
+		isLoadingChatSession,
 		latestEmailCode,
 		isFetchingLatestEmail,
-	} = useScribeChat(id);
+	} = useScribeChat(chatId);
 
 	const [input, setInput] = useState("");
 	const [_isLoading, _setIsLoading] = useState(false);
@@ -73,13 +73,13 @@ function RouteComponent() {
 		transport: new DefaultChatTransport({
 			api: "/api/chat",
 			body: {
-				chatId: id,
+				chatId,
 				brandId: selectedBrandId,
 				emailTone: tone,
 				emailPreset: emailPreset,
 			},
 		}),
-		id: id,
+		id: chatId,
 	});
 
 	useEffect(() => {
@@ -96,21 +96,21 @@ function RouteComponent() {
 	useEffect(() => {
 		if (
 			chatSession?.chatMessages !== undefined &&
-			!isFetchingchatSession &&
+			!isFetchingChatSession &&
 			messages.length === 0
 		) {
 			if (chatSession.chatMessages.length === 0) {
-				const localStorageKey = `initial_prompt_${id}`;
+				const localStorageKey = `initial_prompt_${chatId}`;
 				const initialPrompt = localStorage.getItem(localStorageKey);
 				if (initialPrompt !== null) {
 					sendMessage(
 						{ text: initialPrompt },
 						{
 							body: {
-								chatId: id,
-								brandId: selectedBrandId,
-								emailTone: tone,
-								emailPreset: emailPreset,
+								chatId,
+								brandId: chatSession?.brandId,
+								emailTone: chatSession?.tone,
+								emailPreset: chatSession?.preset,
 							},
 						},
 					);
@@ -130,14 +130,14 @@ function RouteComponent() {
 		}
 	}, [
 		chatSession?.chatMessages,
-		isFetchingchatSession,
+		isFetchingChatSession,
 		sendMessage,
 		setMessages,
-		id,
-		emailPreset,
-		selectedBrandId,
-		tone,
+		chatId,
 		messages.length,
+		chatSession?.brandId,
+		chatSession?.preset,
+		chatSession?.tone,
 	]);
 
 	const handleExportJsx = () => {
@@ -154,14 +154,9 @@ function RouteComponent() {
 	};
 
 	const handleSendTest = async () => {
-		if (!previewHtml) {
-			toast.error("No preview content to send");
-			return;
-		}
-
 		const toastId = toast.loading("Sending test email...");
 		try {
-			await sendTestEmail({ data: previewHtml });
+			await sendTestEmail({ data: { id: chatId } });
 			toast.success(`Test email sent to ${user.email}`, { id: toastId });
 		} catch (error) {
 			console.error("Failed to send test email:", error);
@@ -169,7 +164,7 @@ function RouteComponent() {
 		}
 	};
 
-	if (isLoadingchatSession) {
+	if (isLoadingChatSession) {
 		return (
 			<AuthenticatedLayout>
 				<ChatPageSkeleton />
@@ -194,8 +189,8 @@ function RouteComponent() {
 						>
 							<ResizablePanel defaultSize={40} minSize={30}>
 								<DashboardChatPanel
-									key={id}
-									chatId={id}
+									key={chatId}
+									chatId={chatId}
 									setGeneratedCode={setGeneratedCode}
 									input={input}
 									setInput={setInput}
