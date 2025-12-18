@@ -13,4 +13,12 @@ export default defineConfig({
 		viteReact(),
 		netlify(),
 	],
+	ssr: {
+		external: ["esbuild"],
+	},
+	build: {
+		rollupOptions: {
+			external: ["esbuild"],
+		},
+	},
 });

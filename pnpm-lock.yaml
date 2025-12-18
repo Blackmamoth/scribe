@@ -126,6 +126,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      esbuild:
+        specifier: ^0.27.2
+        version: 0.27.2
       input-otp:
         specifier: ^1.4.2
         version: 1.4.2(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
@@ -12507,7 +12510,7 @@ snapshots:
 
   tsx@4.21.0:
     dependencies:
-      esbuild: 0.27.1
+      esbuild: 0.27.2
       get-tsconfig: 4.13.0
     optionalDependencies:
       fsevents: 2.3.3

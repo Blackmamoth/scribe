@@ -2,3 +2,6 @@
   command = "pnpm build"
   publish = "dist/client"
 
+[functions]
+external_node_modules = ["esbuild"]
+node_bundler = "esbuild"
