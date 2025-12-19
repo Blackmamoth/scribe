@@ -20,6 +20,7 @@ interface ChatOptionsProps {
 	setTone: (value: EmailTone) => void;
 	emailPreset: EmailPreset;
 	setEmailPreset: (value: EmailPreset) => void;
+	disabled?: boolean;
 }
 
 export function ChatOptions({
@@ -27,6 +28,7 @@ export function ChatOptions({
 	setTone,
 	emailPreset,
 	setEmailPreset,
+	disabled = false,
 }: ChatOptionsProps) {
 	function isEmailTone(value: string): value is EmailTone {
 		return EMAIL_TONES.includes(value as EmailTone);
@@ -42,7 +44,8 @@ export function ChatOptions({
 				<Button
 					variant="ghost"
 					size="icon"
-					className="h-8 w-8 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted"
+					disabled={disabled}
+					className="h-8 w-8 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted disabled:opacity-50"
 				>
 					<Settings2 className="h-4 w-4" />
 				</Button>

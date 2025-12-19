@@ -1,8 +1,10 @@
 import type { UIMessage } from "@ai-sdk/react";
 import { processScribeMessages } from "@scribe/core/ai/service/chat";
 import type { EmailPreset, EmailTone } from "@scribe/db/types";
+import { Square } from "lucide-react";
 import { type Dispatch, type SetStateAction, useEffect, useMemo } from "react";
 import { ChatList } from "@/components/chat/chat-list";
+import { Button } from "@/components/ui/button";
 import { DashboardChatInput } from "./dashboard-chat-input";
 
 interface DashboardChatPanelProps {
@@ -24,6 +26,14 @@ interface DashboardChatPanelProps {
 			body?: object;
 		},
 	) => void;
+	status: "submitted" | "streaming" | "error" | "ready";
+	stop: () => void;
+	user?: {
+		id: string;
+		name: string;
+		email: string;
+		image?: string | null;
+	};
 }
 
 export function DashboardChatPanel({
@@ -39,9 +49,12 @@ export function DashboardChatPanel({
 	setEmailPreset,
 	messages,
 	sendMessage,
+	status,
+	stop,
+	user,
 }: DashboardChatPanelProps) {
 	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === "Enter" && !e.shiftKey) {
+		if (e.key === "Enter" && !e.shiftKey && status !== "streaming") {
 			e.preventDefault();
 			sendMessage(
 				{ text: input },
@@ -83,18 +96,34 @@ export function DashboardChatPanel({
 			<ChatList
 				messages={displayMessages}
 				onRestoreVersion={setGeneratedCode}
+				user={user}
 			/>
-			<DashboardChatInput
-				input={input}
-				setInput={setInput}
-				onKeyDown={handleKeyDown}
-				selectedBrandId={selectedBrandId}
-				setSelectedBrandId={setSelectedBrandId}
-				tone={tone}
-				setTone={setTone}
-				emailPreset={emailPreset}
-				setEmailPreset={setEmailPreset}
-			/>
+			<div className="relative">
+				<DashboardChatInput
+					input={input}
+					setInput={setInput}
+					onKeyDown={handleKeyDown}
+					selectedBrandId={selectedBrandId}
+					setSelectedBrandId={setSelectedBrandId}
+					tone={tone}
+					setTone={setTone}
+					emailPreset={emailPreset}
+					setEmailPreset={setEmailPreset}
+					disabled={status === "streaming"}
+				/>
+				{status === "streaming" && (
+					<div className="absolute right-6 bottom-6">
+						<Button
+							variant="destructive"
+							size="icon-sm"
+							onClick={stop}
+							className="shadow-lg"
+						>
+							<Square className="h-3 w-3" />
+						</Button>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

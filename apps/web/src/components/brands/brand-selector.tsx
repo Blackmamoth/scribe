@@ -18,12 +18,14 @@ interface BrandSelectorProps {
 	value?: string | null;
 	onChange: React.Dispatch<SetStateAction<string | null>>;
 	className?: string;
+	disabled?: boolean;
 }
 
 export function BrandSelector({
 	value,
 	onChange,
 	className,
+	disabled = false,
 }: BrandSelectorProps) {
 	const { brands } = useBrand();
 
@@ -38,7 +40,8 @@ export function BrandSelector({
 					<Button
 						variant="ghost"
 						size="icon"
-						className="h-8 w-8 rounded-lg bg-muted/50 text-muted-foreground hover:bg-muted"
+						disabled={disabled}
+						className="h-8 w-8 rounded-lg bg-muted/50 text-muted-foreground hover:bg-muted disabled:opacity-50"
 					>
 						<Plus className="h-4 w-4" />
 					</Button>
@@ -107,7 +110,8 @@ export function BrandSelector({
 					<button
 						type="button"
 						onClick={() => onChange(null)}
-						className="ml-1 transition-colors hover:text-destructive"
+						disabled={disabled}
+						className="ml-1 transition-colors hover:text-destructive disabled:opacity-50 disabled:hover:text-inherit"
 					>
 						<X className="h-3 w-3" />
 					</button>

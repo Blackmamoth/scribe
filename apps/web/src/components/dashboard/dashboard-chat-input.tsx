@@ -14,6 +14,7 @@ interface DashboardChatInputProps {
 	setTone: (value: EmailTone) => void;
 	emailPreset: EmailPreset;
 	setEmailPreset: (value: EmailPreset) => void;
+	disabled?: boolean;
 }
 
 export function DashboardChatInput({
@@ -26,6 +27,7 @@ export function DashboardChatInput({
 	setTone,
 	emailPreset,
 	setEmailPreset,
+	disabled = false,
 }: DashboardChatInputProps) {
 	return (
 		<div className="border-t bg-background p-4">
@@ -35,29 +37,34 @@ export function DashboardChatInput({
 					onChange={(e) => setInput(e.target.value)}
 					onKeyDown={onKeyDown}
 					placeholder="Describe the email you want to build..."
-					className="min-h-[80px] w-full resize-none border-0 bg-transparent px-4 py-3 text-base shadow-none focus-visible:ring-0"
+					disabled={disabled}
+					className="min-h-[80px] w-full resize-none border-0 bg-transparent px-4 py-3 text-base shadow-none focus-visible:ring-0 disabled:opacity-50"
 				/>
 				<div className="mt-2 flex items-center justify-between px-3 pb-3">
 					<div className="flex items-center gap-2">
 						<BrandSelector
 							value={selectedBrandId}
 							onChange={setSelectedBrandId}
+							disabled={disabled}
 						/>
 						<ChatOptions
 							tone={tone}
 							setTone={setTone}
 							emailPreset={emailPreset}
 							setEmailPreset={setEmailPreset}
+							disabled={disabled}
 						/>
 					</div>
 					<div className="flex items-center gap-4">
-						<div className="hidden text-muted-foreground text-xs sm:block">
-							Press{" "}
-							<kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium font-mono text-[10px] text-muted-foreground opacity-100">
-								Enter
-							</kbd>{" "}
-							to send
-						</div>
+						{!disabled && (
+							<div className="hidden text-muted-foreground text-xs sm:block">
+								Press{" "}
+								<kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium font-mono text-[10px] text-muted-foreground opacity-100">
+									Enter
+								</kbd>{" "}
+								to send
+							</div>
+						)}
 					</div>
 				</div>
 			</div>

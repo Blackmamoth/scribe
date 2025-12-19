@@ -11,10 +11,24 @@ interface ChatMessageProps {
 		parsed?: ParsedScribeMessage;
 	};
 	onRestore?: (code: string) => void;
+	user?: {
+		id: string;
+		name: string;
+		email: string;
+		image?: string | null;
+	};
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, user }: ChatMessageProps) {
 	const isUser = message.role === "user";
+
+	const getInitials = (name: string) => {
+		return name
+			.split(" ")
+			.map((word) => word.charAt(0).toUpperCase())
+			.join("")
+			.slice(0, 2);
+	};
 
 	return (
 		<div
@@ -26,9 +40,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
 			<Avatar className="h-8 w-8 border">
 				{isUser ? (
 					<>
-						<AvatarImage src="https://github.com/shadcn.png" />
+						<AvatarImage src={user?.image || undefined} />
 						<AvatarFallback>
-							<User className="h-4 w-4" />
+							{user?.name ? (
+								getInitials(user.name)
+							) : (
+								<User className="h-4 w-4" />
+							)}
 						</AvatarFallback>
 					</>
 				) : (

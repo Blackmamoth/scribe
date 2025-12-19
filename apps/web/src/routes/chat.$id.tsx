@@ -69,7 +69,7 @@ function RouteComponent() {
 	const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
 	const [previewHtml, setPreviewHtml] = useState("");
 
-	const { messages, setMessages, sendMessage, status } = useChat({
+	const { messages, setMessages, sendMessage, status, stop } = useChat({
 		transport: new DefaultChatTransport({
 			api: "/api/chat",
 			body: {
@@ -202,6 +202,9 @@ function RouteComponent() {
 									setEmailPreset={setEmailPreset}
 									messages={messages}
 									sendMessage={sendMessage}
+									status={status}
+									stop={stop}
+									user={user}
 								/>
 							</ResizablePanel>
 

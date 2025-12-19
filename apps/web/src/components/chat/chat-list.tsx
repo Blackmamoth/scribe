@@ -11,9 +11,15 @@ interface ChatListProps {
 		parsed?: ParsedScribeMessage;
 	}[];
 	onRestoreVersion?: (code: string) => void;
+	user?: {
+		id: string;
+		name: string;
+		email: string;
+		image?: string | null;
+	};
 }
 
-export function ChatList({ messages, onRestoreVersion }: ChatListProps) {
+export function ChatList({ messages, onRestoreVersion, user }: ChatListProps) {
 	const bottomRef = useRef<HTMLDivElement>(null);
 
 	// biome-ignore lint: this effect intentionally scrolls on every message change
@@ -30,7 +36,11 @@ export function ChatList({ messages, onRestoreVersion }: ChatListProps) {
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.3 }}
 				>
-					<ChatMessage message={message} onRestore={onRestoreVersion} />
+					<ChatMessage
+						message={message}
+						onRestore={onRestoreVersion}
+						user={user}
+					/>
 				</motion.div>
 			))}
 			<div ref={bottomRef} />
