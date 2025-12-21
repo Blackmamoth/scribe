@@ -1,7 +1,21 @@
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWebContainer } from "@/hooks/webcontainer";
 import { cn } from "@/lib/utils";
+
+function injectPreviewStyles(html: string): string {
+	if (!html) return html;
+
+	const baseTag = `<base target="_blank" rel="noopener noreferrer">`;
+
+	if (html.includes("<head>")) {
+		return html.replace("<head>", `<head>${baseTag}`);
+	}
+	if (html.includes("<html")) {
+		return html.replace(/<html[^>]*>/, `$&<head>${baseTag}</head>`);
+	}
+	return baseTag + html;
+}
 
 interface EmailPreviewProps {
 	code: string;
@@ -43,13 +57,8 @@ export function EmailPreview({
 			try {
 				setIsGenerating(true);
 
-				// update user code
 				await writeFile("index.tsx", code);
-
-				// build -> index.js
 				await runNode(["build.js"]);
-
-				// run render.ts
 				const result = await runNode(["render.js"]);
 
 				if (result.exitCode === 0) {
@@ -95,6 +104,11 @@ export function EmailPreview({
 	const message =
 		bootMessage[bootStatus] ?? (isGenerating ? "Generating preview..." : null);
 
+	const safePreviewHtml = useMemo(
+		() => injectPreviewStyles(previewHtml),
+		[previewHtml],
+	);
+
 	return (
 		<div className="flex h-full flex-1 items-center justify-center overflow-hidden bg-muted/30 p-4">
 			<div
@@ -127,10 +141,10 @@ export function EmailPreview({
 					</div>
 				) : (
 					<iframe
-						srcDoc={previewHtml}
+						srcDoc={safePreviewHtml}
 						className="h-full w-full border-0"
 						title="Email Preview"
-						sandbox="allow-scripts"
+						sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
 					/>
 				)}
 			</div>
