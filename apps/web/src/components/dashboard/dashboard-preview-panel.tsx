@@ -20,6 +20,7 @@ interface DashboardPreviewPanelProps {
 	previewHtml: string;
 	onHtmlChange: (html: string) => void;
 	isStreaming?: boolean;
+	isAnimating?: boolean;
 }
 
 export function DashboardPreviewPanel({
@@ -38,6 +39,7 @@ export function DashboardPreviewPanel({
 	previewHtml,
 	onHtmlChange,
 	isStreaming,
+	isAnimating,
 }: DashboardPreviewPanelProps) {
 	useEffect(() => {
 		if (!isFetchingLatestEmail && latestEmailCode) {
@@ -96,6 +98,7 @@ export function DashboardPreviewPanel({
 						code={generatedCode}
 						onChange={setGeneratedCode}
 						isStreaming={isStreaming}
+						isAnimating={isAnimating}
 					/>
 				</div>
 			</div>

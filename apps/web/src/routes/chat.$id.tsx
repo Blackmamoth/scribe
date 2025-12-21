@@ -3,7 +3,7 @@ import type { EmailPreset, EmailTone } from "@scribe/db/types";
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { DefaultChatTransport } from "ai";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DashboardChatPanel } from "@/components/dashboard/dashboard-chat-panel";
 import { DashboardPreviewPanel } from "@/components/dashboard/dashboard-preview-panel";
@@ -68,6 +68,80 @@ function RouteComponent() {
 	);
 	const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
 	const [previewHtml, setPreviewHtml] = useState("");
+
+	// Typewriter animation state
+	const [isAnimating, setIsAnimating] = useState(false);
+	const [animatedCode, setAnimatedCode] = useState("");
+	const animationRef = useRef<{ cancelled: boolean }>({ cancelled: false });
+
+	// Callback for when code is patched (diff applied) - triggers typewriter animation
+	const handleCodePatched = useCallback(
+		(oldText: string, newText: string) => {
+			// Cancel any running animation
+			animationRef.current.cancelled = true;
+			animationRef.current = { cancelled: false };
+			const currentAnimation = animationRef.current;
+
+			// Get current code and find where the change is
+			const codeBeforeChange = generatedCode;
+			const changeIndex = codeBeforeChange.indexOf(oldText);
+
+			if (changeIndex === -1) {
+				// Couldn't find the change location, skip animation
+				return;
+			}
+
+			const prefix = codeBeforeChange.slice(0, changeIndex);
+			const suffix = codeBeforeChange.slice(changeIndex + oldText.length);
+
+			setIsAnimating(true);
+			setAnimatedCode(codeBeforeChange);
+
+			let currentOldIndex = oldText.length;
+			let currentNewIndex = 0;
+
+			// Phase 1: Erase the old text character by character
+			const eraseInterval = setInterval(() => {
+				if (currentAnimation.cancelled) {
+					clearInterval(eraseInterval);
+					return;
+				}
+
+				if (currentOldIndex > 0) {
+					currentOldIndex--;
+					const partialOld = oldText.slice(0, currentOldIndex);
+					setAnimatedCode(prefix + partialOld + suffix);
+				} else {
+					clearInterval(eraseInterval);
+
+					// Phase 2: Type the new text character by character
+					const typeInterval = setInterval(() => {
+						if (currentAnimation.cancelled) {
+							clearInterval(typeInterval);
+							return;
+						}
+
+						if (currentNewIndex < newText.length) {
+							currentNewIndex++;
+							const partialNew = newText.slice(0, currentNewIndex);
+							setAnimatedCode(prefix + partialNew + suffix);
+						} else {
+							clearInterval(typeInterval);
+							setIsAnimating(false);
+						}
+					}, 10); // Type speed
+				}
+			}, 15); // Erase speed
+		},
+		[generatedCode],
+	);
+
+	// Cleanup animation on unmount
+	useEffect(() => {
+		return () => {
+			animationRef.current.cancelled = true;
+		};
+	}, []);
 
 	const { messages, setMessages, sendMessage, status, stop } = useChat({
 		transport: new DefaultChatTransport({
@@ -191,7 +265,9 @@ function RouteComponent() {
 								<DashboardChatPanel
 									key={chatId}
 									chatId={chatId}
+									generatedCode={generatedCode}
 									setGeneratedCode={setGeneratedCode}
+									onCodePatched={handleCodePatched}
 									input={input}
 									setInput={setInput}
 									selectedBrandId={selectedBrandId}
@@ -216,7 +292,7 @@ function RouteComponent() {
 									setViewMode={setViewMode}
 									device={device}
 									setDevice={setDevice}
-									generatedCode={generatedCode}
+									generatedCode={isAnimating ? animatedCode : generatedCode}
 									setGeneratedCode={setGeneratedCode}
 									onExportJsx={handleExportJsx}
 									onSendTest={handleSendTest}
@@ -227,6 +303,7 @@ function RouteComponent() {
 									previewHtml={previewHtml}
 									onHtmlChange={setPreviewHtml}
 									isStreaming={status === "streaming"}
+									isAnimating={isAnimating}
 								/>
 							</ResizablePanel>
 						</ResizablePanelGroup>

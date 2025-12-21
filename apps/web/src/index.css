@@ -199,3 +199,25 @@
 .chats-scroll-container::-webkit-scrollbar-thumb:hover {
 	background: hsl(var(--muted-foreground) / 0.5);
 }
+
+/* Typewriter scan animation for code patching */
+@keyframes scan-down {
+	0% {
+		top: 0;
+		opacity: 0;
+	}
+	10% {
+		opacity: 1;
+	}
+	90% {
+		opacity: 1;
+	}
+	100% {
+		top: 100%;
+		opacity: 0;
+	}
+}
+
+.animate-scan-down {
+	animation: scan-down 600ms ease-in-out forwards;
+}

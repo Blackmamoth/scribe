@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { applyDiff, formatApplyError, parseDiff } from "@scribe/core/ai";
 import { handleChat, parseScribeResponse } from "@scribe/core/ai/service/chat";
 import { chatSchema } from "@scribe/core/validation";
 import { db, eq } from "@scribe/db";
@@ -59,7 +60,22 @@ async function saveChatResponse(
 	const responseText = responseMessage.parts
 		.map((part) => (part.type === "text" ? part.text : ""))
 		.join("");
-	const { assistant, code } = parseScribeResponse(responseText);
+	const { assistant, code, diff, isDiff } = parseScribeResponse(responseText);
+
+	let finalCode = code;
+	let diffError: string | null = null;
+
+	if (isDiff && diff && latestVersion?.code) {
+		const parsedDiff = parseDiff(diff);
+		const result = applyDiff(latestVersion.code, parsedDiff);
+
+		if (result.success) {
+			finalCode = result.code;
+		} else {
+			diffError = formatApplyError(result);
+			console.error("Failed to apply diff:", diffError);
+		}
+	}
 
 	const userMessage = latestUserMessage.parts
 		.map((part) => (part.type === "text" ? part.text : ""))
@@ -76,16 +92,18 @@ async function saveChatResponse(
 			.values(insertArr)
 			.returning({ chatMessageId: chatMessage.id });
 
-		if (code?.trim()) {
+		if (finalCode?.trim() && !diffError) {
 			const version = (latestVersion?.version ?? 0) + 1;
-			const chatMessageId = newChatMessages[0].chatMessageId;
+			const chatMessageId = newChatMessages[0]?.chatMessageId;
 
-			await tx.insert(emailVersions).values({
-				chatId,
-				code,
-				version,
-				chatMessageId,
-			});
+			if (chatMessageId) {
+				await tx.insert(emailVersions).values({
+					chatId,
+					code: finalCode,
+					version,
+					chatMessageId,
+				});
+			}
 		}
 
 		const chatUpdateDetails: Partial<typeof chat.$inferInsert> = {
@@ -169,6 +187,7 @@ export const Route = createFileRoute("/api/chat")({
 					return stream.toUIMessageStreamResponse({
 						sendReasoning: true,
 						onFinish: async ({ responseMessage }) => {
+							console.log(responseMessage);
 							await saveChatResponse(
 								chatId,
 								latestUserMessage,

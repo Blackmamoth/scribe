@@ -1,15 +1,25 @@
 import type { UIMessage } from "@ai-sdk/react";
+import { applyDiff, formatApplyError, parseDiff } from "@scribe/core/ai";
 import { processScribeMessages } from "@scribe/core/ai/service/chat";
 import type { EmailPreset, EmailTone } from "@scribe/db/types";
 import { Square } from "lucide-react";
-import { type Dispatch, type SetStateAction, useEffect, useMemo } from "react";
+import {
+	type Dispatch,
+	type SetStateAction,
+	useEffect,
+	useMemo,
+	useRef,
+} from "react";
+import { toast } from "sonner";
 import { ChatList } from "@/components/chat/chat-list";
 import { Button } from "@/components/ui/button";
 import { DashboardChatInput } from "./dashboard-chat-input";
 
 interface DashboardChatPanelProps {
 	chatId: string;
+	generatedCode: string;
 	setGeneratedCode: (code: string) => void;
+	onCodePatched?: (oldText: string, newText: string) => void;
 	input: string;
 	setInput: (value: string) => void;
 	selectedBrandId: string | null;
@@ -38,7 +48,9 @@ interface DashboardChatPanelProps {
 
 export function DashboardChatPanel({
 	chatId,
+	generatedCode,
 	setGeneratedCode,
+	onCodePatched,
 	input,
 	setInput,
 	selectedBrandId,
@@ -53,6 +65,8 @@ export function DashboardChatPanel({
 	stop,
 	user,
 }: DashboardChatPanelProps) {
+	// Track which message we've already processed to avoid re-applying
+	const lastProcessedMessageIdRef = useRef<string | null>(null);
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter" && !e.shiftKey && status !== "streaming") {
 			e.preventDefault();
@@ -77,19 +91,61 @@ export function DashboardChatPanel({
 		return processScribeMessages(messages);
 	}, [messages]);
 
-	// Update generated code when assistant message is complete
+	// Update generated code when assistant message changes
 	useEffect(() => {
 		// Find the last assistant message
 		const lastMessage = displayMessages[displayMessages.length - 1];
 
-		if (lastMessage?.role === "assistant" && lastMessage.parsed) {
-			const { code } = lastMessage.parsed;
+		if (
+			!lastMessage ||
+			lastMessage.role !== "assistant" ||
+			!lastMessage.parsed
+		) {
+			return;
+		}
 
-			if (code) {
-				setGeneratedCode(code);
+		const { code, diff, isDiff, isComplete } = lastMessage.parsed;
+
+		// For diffs: only apply when complete (partial diffs can't be applied)
+		if (isDiff) {
+			// Skip if we've already processed this message
+			if (lastMessage.id === lastProcessedMessageIdRef.current) {
+				return;
+			}
+
+			if (!isComplete) {
+				return;
+			}
+
+			if (diff && generatedCode) {
+				const parsedDiff = parseDiff(diff);
+				const result = applyDiff(generatedCode, parsedDiff);
+
+				if (result.success) {
+					// Get the first change for animation
+					const firstChange = result.changes[0];
+					if (firstChange) {
+						onCodePatched?.(firstChange.oldText, firstChange.newText);
+					}
+					setGeneratedCode(result.code);
+					lastProcessedMessageIdRef.current = lastMessage.id;
+				} else {
+					// Show error to user
+					toast.error("Failed to apply code changes", {
+						description: formatApplyError(result),
+					});
+					lastProcessedMessageIdRef.current = lastMessage.id;
+				}
+			}
+		} else if (code) {
+			// For full code: update during streaming (show live preview)
+			setGeneratedCode(code);
+			// Only mark as processed when complete
+			if (isComplete) {
+				lastProcessedMessageIdRef.current = lastMessage.id;
 			}
 		}
-	}, [displayMessages, setGeneratedCode]);
+	}, [displayMessages, generatedCode, setGeneratedCode, onCodePatched]);
 
 	return (
 		<div className="flex h-full flex-col">
