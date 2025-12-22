@@ -2,11 +2,14 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	Loader2,
 	LogOut,
+	Moon,
 	MoreHorizontal,
 	Plus,
 	Settings,
+	Sun,
 	Trash2,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	AlertDialog,
@@ -41,7 +44,6 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarRail,
-	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useBrand } from "@/hooks/brand";
 import { useScribeChat } from "@/hooks/chat";
@@ -49,6 +51,7 @@ import { authClient } from "@/lib/auth-client";
 
 export function AppSidebar() {
 	const { brands } = useBrand();
+	const { theme, setTheme } = useTheme();
 
 	const {
 		chats,
@@ -106,24 +109,21 @@ export function AppSidebar() {
 	}, [handleScroll]);
 
 	return (
-		<Sidebar collapsible="icon">
-			<SidebarHeader className="flex-row items-center justify-between p-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2">
-				<div className="group-data-[collapsible=icon]:hidden">
-					<span className="font-bold text-lg">Scribe</span>
-				</div>
-				<SidebarTrigger className="ml-auto group-data-[collapsible=icon]:ml-0" />
+		<Sidebar collapsible="offcanvas">
+			<SidebarHeader className="flex-row items-center justify-between p-4">
+				<span className="font-bold text-lg">Scribe</span>
 			</SidebarHeader>
 			<SidebarContent className="flex flex-col px-2">
 				{/* New Chat Button - Fixed at top */}
-				<SidebarMenu className="flex-shrink-0">
+				<SidebarMenu className="mb-2 flex-shrink-0">
 					<SidebarMenuItem>
 						<SidebarMenuButton
 							onClick={() => navigate({ to: "/" })}
-							className="group-data-[collapsible=icon]:!p-2 group-data-[collapsible=icon]:!size-8 w-full justify-center bg-primary text-primary-foreground transition-all hover:bg-primary/90 hover:text-primary-foreground group-data-[collapsible=icon]:rounded-md"
+							className="group-data-[collapsible=offcanvas]:!p-2 group-data-[collapsible=offcanvas]:!size-8 h-9 w-full justify-start border border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground shadow-sm transition-all hover:bg-sidebar-accent/80 group-data-[collapsible=offcanvas]:rounded-md"
 							tooltip="New Chat"
 						>
-							<Plus className="size-4" />
-							<span className="whitespace-nowrap font-semibold group-data-[collapsible=icon]:hidden">
+							<Plus className="size-4 flex-shrink-0" />
+							<span className="whitespace-nowrap font-medium group-data-[collapsible=offcanvas]:hidden">
 								New Chat
 							</span>
 						</SidebarMenuButton>
@@ -132,7 +132,7 @@ export function AppSidebar() {
 
 				{/* Chats Section - Scrollable */}
 				<div className="min-h-0 flex-1">
-					<SidebarGroup className="flex h-full flex-col group-data-[collapsible=icon]:hidden">
+					<SidebarGroup className="flex h-full flex-col group-data-[collapsible=offcanvas]:hidden">
 						<SidebarGroupLabel className="flex-shrink-0 px-2 font-medium text-muted-foreground text-xs">
 							Recent Chats
 						</SidebarGroupLabel>
@@ -175,7 +175,7 @@ export function AppSidebar() {
 															params={{ id: chat.id }}
 															className="flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground"
 														>
-															<span className="truncate group-data-[collapsible=icon]:hidden">
+															<span className="truncate group-data-[collapsible=offcanvas]:hidden">
 																{chat.title}
 															</span>
 														</Link>
@@ -235,7 +235,7 @@ export function AppSidebar() {
 				</div>
 
 				{/* Brands Section - Fixed at bottom */}
-				<SidebarGroup className="flex-shrink-0 group-data-[collapsible=icon]:hidden">
+				<SidebarGroup className="flex-shrink-0 group-data-[collapsible=offcanvas]:hidden">
 					<SidebarGroupLabel className="flex items-center justify-between px-2 font-medium text-muted-foreground text-xs">
 						Brands
 						<Link
@@ -269,7 +269,7 @@ export function AppSidebar() {
 													{brand.name.substring(0, 2).toUpperCase()}
 												</div>
 											)}
-											<span className="group-data-[collapsible=icon]:hidden">
+											<span className="group-data-[collapsible=offcanvas]:hidden">
 												{brand.name}
 											</span>
 										</Link>
@@ -341,11 +341,17 @@ export function AppSidebar() {
 										</div>
 									</div>
 								</DropdownMenuLabel>
-								{/*<DropdownMenuSeparator />
-								<DropdownMenuItem>
-									<Settings className="mr-2 h-4 w-4" />
-									Settings
-								</DropdownMenuItem>*/}
+								<DropdownMenuSeparator />
+								<DropdownMenuItem
+									onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+								>
+									{theme === "light" ? (
+										<Moon className="mr-2 h-4 w-4" />
+									) : (
+										<Sun className="mr-2 h-4 w-4" />
+									)}
+									{theme === "light" ? "Dark Mode" : "Light Mode"}
+								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
 									onClick={async () => {
