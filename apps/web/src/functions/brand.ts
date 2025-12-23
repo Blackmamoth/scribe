@@ -28,15 +28,10 @@ export const uploadBrandLogo = createServerFn({ method: "POST" })
 			throw new Error("valid logo file required");
 		}
 
-		const validTypes = [
-			"image/png",
-			"image/jpeg",
-			"image/webp",
-			"image/svg+xml",
-		];
+		const validTypes = ["image/png", "image/jpeg", "image/webp"];
 		if (!validTypes.includes(logo.type)) {
 			throw new Error(
-				"invalid file type. only PNG, JPEG, WebP, and SVG are allowed",
+				"invalid file type. only PNG, JPEG, and WebP are allowed",
 			);
 		}
 

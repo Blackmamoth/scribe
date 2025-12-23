@@ -1,6 +1,6 @@
 import type { Brand } from "@scribe/db/types";
 import { useForm } from "@tanstack/react-form";
-import { Upload, X } from "lucide-react";
+import { Info, Upload, X } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -244,6 +244,10 @@ export function BrandDialog({
 													{previewField.state.value
 														? "Click the X to remove and upload a new logo."
 														: "Click to upload a brand logo (max 2MB)."}
+												</div>
+												<div className="mt-1.5 flex items-center gap-1.5 font-medium text-[10px] text-amber-600 uppercase tracking-wider dark:text-amber-500">
+													<Info className="h-3 w-3" />
+													<span>Public URL will be generated</span>
 												</div>
 											</div>
 										</div>

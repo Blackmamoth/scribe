@@ -1,6 +1,14 @@
 import type { Brand } from "@scribe/db/types";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { Eye, Globe, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+	AlertTriangle,
+	Eye,
+	Globe,
+	MoreHorizontal,
+	Pencil,
+	Plus,
+	Trash2,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import z from "zod";
 import { BrandsDeleteDialog } from "@/components/brands/brands-delete-dialog";
@@ -121,6 +129,24 @@ function RouteComponent() {
 									Add Brand
 								</Button>
 							))}
+					</div>
+				</div>
+
+				<div className="group mb-8 overflow-hidden rounded-xl border border-amber-500/20 bg-amber-500/[0.02] p-4 transition-colors hover:bg-amber-500/[0.05] dark:bg-amber-500/[0.03]">
+					<div className="flex items-center gap-4">
+						<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-500">
+							<AlertTriangle className="h-5 w-5" />
+						</div>
+						<div>
+							<h3 className="font-medium text-amber-900 text-sm dark:text-amber-400">
+								Public Assets Notice
+							</h3>
+							<p className="text-amber-800/60 text-xs leading-relaxed dark:text-amber-500/60">
+								Uploaded logos are accessible via public URLs for use in email
+								previews and test emails. Please avoid uploading sensitive or
+								private images.
+							</p>
+						</div>
 					</div>
 				</div>
 
