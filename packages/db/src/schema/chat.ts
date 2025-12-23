@@ -5,6 +5,7 @@ import {
 } from "@scribe/core/constants";
 import { relations } from "drizzle-orm";
 import {
+	index,
 	integer,
 	pgEnum,
 	pgTable,
@@ -22,33 +23,45 @@ export const emailPresetEnum = pgEnum("email_preset", EMAIL_PRESETS);
 
 export const messageRoleEnum = pgEnum("message_role", MESSAGE_ROLES);
 
-export const chat = pgTable("chat", {
-	id: uuid("id").primaryKey().defaultRandom(),
-	userId: text("user_id")
-		.notNull()
-		.references(() => user.id, { onDelete: "cascade" }),
-	brandId: uuid("brand_id").references(() => brand.id, {
-		onDelete: "set null",
-	}),
-	title: text("name").notNull(),
-	tone: emailToneEnum().default("friendly"),
-	preset: emailPresetEnum().default("welcome_series"),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at")
-		.defaultNow()
-		.$onUpdate(() => new Date())
-		.notNull(),
-});
+export const chat = pgTable(
+	"chat",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		brandId: uuid("brand_id").references(() => brand.id, {
+			onDelete: "set null",
+		}),
+		title: text("name").notNull(),
+		tone: emailToneEnum().default("friendly"),
+		preset: emailPresetEnum().default("welcome_series"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+		updatedAt: timestamp("updated_at")
+			.defaultNow()
+			.$onUpdate(() => new Date())
+			.notNull(),
+	},
+	(table) => {
+		return [index("chat_user_id_idx").on(table.userId)];
+	},
+);
 
-export const chatMessage = pgTable("chat_message", {
-	id: uuid("id").primaryKey().defaultRandom(),
-	chatId: uuid("chat_id")
-		.notNull()
-		.references(() => chat.id, { onDelete: "cascade" }),
-	message: text("message").notNull(),
-	role: messageRoleEnum().default("user").notNull(),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export const chatMessage = pgTable(
+	"chat_message",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		chatId: uuid("chat_id")
+			.notNull()
+			.references(() => chat.id, { onDelete: "cascade" }),
+		message: text("message").notNull(),
+		role: messageRoleEnum().default("user").notNull(),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => {
+		return [index("chat_message_chat_id_idx").on(table.chatId)];
+	},
+);
 
 export const emailVersions = pgTable(
 	"email_versions",

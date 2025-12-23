@@ -87,7 +87,6 @@ export function BrandDialog({
 				onOpenChange(false);
 			} catch (error) {
 				console.error(error);
-				toast.error("Something went wrong");
 			}
 		},
 	});
