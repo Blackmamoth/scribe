@@ -1,13 +1,12 @@
 import { type UIMessage, useChat } from "@ai-sdk/react";
 import type { EmailPreset, EmailTone } from "@scribe/db/types";
-import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { DefaultChatTransport } from "ai";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DashboardChatPanel } from "@/components/dashboard/dashboard-chat-panel";
 import { DashboardPreviewPanel } from "@/components/dashboard/dashboard-preview-panel";
-import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 import { ChatPageSkeleton } from "@/components/skeletons/chat-page-skeleton";
 import {
 	ResizableHandle,
@@ -18,14 +17,8 @@ import { getChat } from "@/functions/chat";
 import { sendTestEmail } from "@/functions/email";
 import { useScribeChat } from "@/hooks/chat";
 
-export const Route = createFileRoute("/chat/$id")({
+export const Route = createFileRoute("/_authenticated/chat/$id")({
 	component: RouteComponent,
-	beforeLoad: ({ context }) => {
-		if (!context.user) {
-			throw redirect({ to: "/signin" });
-		}
-		return { user: context.user };
-	},
 	loader: async ({ params }) => {
 		try {
 			const chat = await getChat({ data: { id: params.id } });
@@ -239,77 +232,71 @@ function RouteComponent() {
 	};
 
 	if (isLoadingChatSession) {
-		return (
-			<AuthenticatedLayout>
-				<ChatPageSkeleton />
-			</AuthenticatedLayout>
-		);
+		return <ChatPageSkeleton />;
 	}
 
 	return (
-		<AuthenticatedLayout>
-			<div className="relative flex h-full flex-col">
-				<AnimatePresence mode="wait">
-					<motion.div
-						key="chat"
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.4, delay: 0.1 }}
-						className="h-full"
+		<div className="relative flex h-full flex-col">
+			<AnimatePresence mode="wait">
+				<motion.div
+					key="chat"
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.4, delay: 0.1 }}
+					className="h-full"
+				>
+					<ResizablePanelGroup
+						direction="horizontal"
+						className="h-full items-stretch"
 					>
-						<ResizablePanelGroup
-							direction="horizontal"
-							className="h-full items-stretch"
-						>
-							<ResizablePanel defaultSize={40} minSize={30}>
-								<DashboardChatPanel
-									key={chatId}
-									chatId={chatId}
-									generatedCode={generatedCode}
-									setGeneratedCode={setGeneratedCode}
-									onCodePatched={handleCodePatched}
-									input={input}
-									setInput={setInput}
-									selectedBrandId={selectedBrandId}
-									setSelectedBrandId={setSelectedBrandId}
-									tone={tone}
-									setTone={setTone}
-									emailPreset={emailPreset}
-									setEmailPreset={setEmailPreset}
-									messages={messages}
-									sendMessage={sendMessage}
-									status={status}
-									stop={stop}
-									user={user}
-								/>
-							</ResizablePanel>
+						<ResizablePanel defaultSize={40} minSize={30}>
+							<DashboardChatPanel
+								key={chatId}
+								chatId={chatId}
+								generatedCode={generatedCode}
+								setGeneratedCode={setGeneratedCode}
+								onCodePatched={handleCodePatched}
+								input={input}
+								setInput={setInput}
+								selectedBrandId={selectedBrandId}
+								setSelectedBrandId={setSelectedBrandId}
+								tone={tone}
+								setTone={setTone}
+								emailPreset={emailPreset}
+								setEmailPreset={setEmailPreset}
+								messages={messages}
+								sendMessage={sendMessage}
+								status={status}
+								stop={stop}
+								user={user}
+							/>
+						</ResizablePanel>
 
-							<ResizableHandle />
+						<ResizableHandle />
 
-							<ResizablePanel defaultSize={60} minSize={30}>
-								<DashboardPreviewPanel
-									viewMode={viewMode}
-									setViewMode={setViewMode}
-									device={device}
-									setDevice={setDevice}
-									generatedCode={isAnimating ? animatedCode : generatedCode}
-									setGeneratedCode={setGeneratedCode}
-									onExportJsx={handleExportJsx}
-									onSendTest={handleSendTest}
-									previewTheme={previewTheme}
-									setPreviewTheme={setPreviewTheme}
-									latestEmailCode={latestEmailCode}
-									isFetchingLatestEmail={isFetchingLatestEmail}
-									previewHtml={previewHtml}
-									onHtmlChange={setPreviewHtml}
-									isStreaming={status === "streaming"}
-									isAnimating={isAnimating}
-								/>
-							</ResizablePanel>
-						</ResizablePanelGroup>
-					</motion.div>
-				</AnimatePresence>
-			</div>
-		</AuthenticatedLayout>
+						<ResizablePanel defaultSize={60} minSize={30}>
+							<DashboardPreviewPanel
+								viewMode={viewMode}
+								setViewMode={setViewMode}
+								device={device}
+								setDevice={setDevice}
+								generatedCode={isAnimating ? animatedCode : generatedCode}
+								setGeneratedCode={setGeneratedCode}
+								onExportJsx={handleExportJsx}
+								onSendTest={handleSendTest}
+								previewTheme={previewTheme}
+								setPreviewTheme={setPreviewTheme}
+								latestEmailCode={latestEmailCode}
+								isFetchingLatestEmail={isFetchingLatestEmail}
+								previewHtml={previewHtml}
+								onHtmlChange={setPreviewHtml}
+								isStreaming={status === "streaming"}
+								isAnimating={isAnimating}
+							/>
+						</ResizablePanel>
+					</ResizablePanelGroup>
+				</motion.div>
+			</AnimatePresence>
+		</div>
 	);
 }
