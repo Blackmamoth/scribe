@@ -5,7 +5,26 @@
 		"build": {
 			"dependsOn": ["^build"],
 			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"outputs": ["dist/**"]
+			"outputs": ["dist/**"],
+			"env": [
+				"BETTER_AUTH_SECRET",
+				"BETTER_AUTH_URL",
+				"CLOUDFLARE_ACCOUNT_ID",
+				"CORS_ORIGIN",
+				"DATABASE_URL",
+				"GOOGLE_CLIENT_ID",
+				"GOOGLE_CLIENT_SECRET",
+				"GOOGLE_REDIRECT_URI",
+				"OPENAI_API_KEY",
+				"R2_ACCESS_KEY",
+				"R2_ACCESS_KEY_ID",
+				"R2_API_ENDPOINT",
+				"R2_BUCKET_NAME",
+				"R2_PUBLIC_URL",
+				"R2_TOKEN_VALUE",
+				"RESEND_API_KEY",
+				"RESEND_SENDER_EMAIL"
+			]
 		},
 		"lint": {
 			"dependsOn": ["^lint"]
@@ -27,7 +46,7 @@
 		},
 		"db:migrate": {
 			"cache": false,
-			"persistent": true
+			"env": ["DATABASE_URL"]
 		},
 		"db:generate": {
 			"cache": false,
