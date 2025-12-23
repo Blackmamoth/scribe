@@ -6,8 +6,8 @@ interface MonacoEditorProps {
 	code: string;
 	onChange: (code: string) => void;
 	language?: string;
-	isStreaming?: boolean;
-	isAnimating?: boolean;
+	isStreaming: boolean;
+	isAnimating: boolean;
 }
 
 export function MonacoEditor({

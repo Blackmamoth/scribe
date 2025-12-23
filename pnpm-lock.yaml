@@ -6,6 +6,12 @@ settings:
 
 catalogs:
   default:
+    '@react-email/components':
+      specifier: 1.0.1
+      version: 1.0.1
+    '@react-email/render':
+      specifier: 2.0.0
+      version: 2.0.0
     ai:
       specifier: ^5.0.108
       version: 5.0.108
@@ -48,6 +54,9 @@ importers:
       '@ai-sdk/react':
         specifier: ^2.0.109
         version: 2.0.109(react@19.1.2)(zod@4.1.13)
+      '@babel/standalone':
+        specifier: ^7.28.5
+        version: 7.28.5
       '@fontsource/inter':
         specifier: ^5.2.8
         version: 5.2.8
@@ -75,6 +84,12 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.8
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.1.17))(@types/react@19.1.17)(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
+      '@react-email/components':
+        specifier: 'catalog:'
+        version: 1.0.1(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
+      '@react-email/render':
+        specifier: 'catalog:'
+        version: 2.0.0(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
       '@scribe/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -111,9 +126,6 @@ importers:
       '@vercel/speed-insights':
         specifier: ^1.3.1
         version: 1.3.1(react@19.1.2)
-      '@webcontainer/api':
-        specifier: ^1.6.1
-        version: 1.6.1
       ai:
         specifier: 'catalog:'
         version: 5.0.108(zod@4.1.13)
@@ -126,9 +138,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      esbuild:
-        specifier: ^0.27.2
-        version: 0.27.2
       input-otp:
         specifier: ^1.4.2
         version: 1.4.2(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
@@ -196,6 +205,9 @@ importers:
       '@testing-library/react':
         specifier: ^16.2.0
         version: 16.3.0(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.1.17))(@types/react@19.1.17)(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
+      '@types/babel__standalone':
+        specifier: ^7.1.9
+        version: 7.1.9
       '@types/react':
         specifier: ~19.1.10
         version: 19.1.17
@@ -254,10 +266,10 @@ importers:
         specifier: ^3.946.0
         version: 3.946.0
       '@react-email/components':
-        specifier: ^1.0.1
+        specifier: 'catalog:'
         version: 1.0.1(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
       '@react-email/render':
-        specifier: ^2.0.0
+        specifier: 'catalog:'
         version: 2.0.0(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
       '@t3-oss/env-core':
         specifier: ^0.13.8
@@ -656,6 +668,10 @@ packages:
 
   '@babel/runtime@7.28.4':
     resolution: {integrity: sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/standalone@7.28.5':
+    resolution: {integrity: sha512-1DViPYJpRU50irpGMfLBQ9B4kyfQuL6X7SS7pwTeWeZX0mNkjzPi0XFqxCjSdddZXUQy4AhnQnnesA/ZHnvAdw==}
     engines: {node: '>=6.9.0'}
 
   '@babel/template@7.27.2':
@@ -3693,6 +3709,9 @@ packages:
   '@types/babel__generator@7.27.0':
     resolution: {integrity: sha512-ufFd2Xi92OAVPYsy+P4n7/U7e68fex0+Ee8gSG9KX7eo084CWiQ4sdxktvdl0bOPupXtVJPY19zk6EwWqUQ8lg==}
 
+  '@types/babel__standalone@7.1.9':
+    resolution: {integrity: sha512-IcCNPLqpevUD7UpV8QB0uwQPOyoOKACFf0YtYWRHcmxcakaje4Q7dbG2+jMqxw/I8Zk0NHvEps66WwS7z/UaaA==}
+
   '@types/babel__template@7.4.4':
     resolution: {integrity: sha512-h/NUaSyG5EyxBIp8YRxo4RMe2/qQgvyowRwVMzhYhBCONbW8PUsg4lkFMrhgZhUe5z3L3MiLDuvyJ/CaPa2A8A==}
 
@@ -3835,9 +3854,6 @@ packages:
 
   '@vue/shared@3.5.25':
     resolution: {integrity: sha512-AbOPdQQnAnzs58H2FrrDxYj/TJfmeS2jdfEEhgiKINy+bnOANmVizIEgq1r+C5zsbs6l1CCQxtcj71rwNQ4jWg==}
-
-  '@webcontainer/api@1.6.1':
-    resolution: {integrity: sha512-2RS2KiIw32BY1Icf6M1DvqSmcon9XICZCDgS29QJb2NmF12ZY2V5Ia+949hMKB3Wno+P/Y8W+sPP59PZeXSELg==}
 
   '@whatwg-node/disposablestack@0.0.6':
     resolution: {integrity: sha512-LOtTn+JgJvX8WfBVJtF08TGrdjuFzGJc4mkP8EdDI8ADbvO7kiexYep1o8dwnt0okb0jYclCDXF13xU7Ge4zSw==}
@@ -7473,6 +7489,8 @@ snapshots:
 
   '@babel/runtime@7.28.4': {}
 
+  '@babel/standalone@7.28.5': {}
+
   '@babel/template@7.27.2':
     dependencies:
       '@babel/code-frame': 7.27.1
@@ -10465,6 +10483,15 @@ snapshots:
     dependencies:
       '@babel/types': 7.28.5
 
+  '@types/babel__standalone@7.1.9':
+    dependencies:
+      '@babel/parser': 7.28.5
+      '@babel/types': 7.28.5
+      '@types/babel__core': 7.20.5
+      '@types/babel__generator': 7.27.0
+      '@types/babel__template': 7.4.4
+      '@types/babel__traverse': 7.28.0
+
   '@types/babel__template@7.4.4':
     dependencies:
       '@babel/parser': 7.28.5
@@ -10615,8 +10642,6 @@ snapshots:
       '@vue/shared': 3.5.25
 
   '@vue/shared@3.5.25': {}
-
-  '@webcontainer/api@1.6.1': {}
 
   '@whatwg-node/disposablestack@0.0.6':
     dependencies:

@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useWebContainer } from "@/hooks/webcontainer";
+import { useEmailCompiler } from "@/hooks/email-compiler";
 import { cn } from "@/lib/utils";
 
 function injectPreviewStyles(html: string): string {
@@ -23,6 +23,7 @@ interface EmailPreviewProps {
 	previewTheme: "light" | "dark";
 	previewHtml: string;
 	onHtmlChange: (html: string) => void;
+	isStreaming: boolean;
 }
 
 export function EmailPreview({
@@ -31,18 +32,14 @@ export function EmailPreview({
 	previewTheme,
 	previewHtml,
 	onHtmlChange,
+	isStreaming,
 }: EmailPreviewProps) {
 	const [error, setError] = useState<string | null>(null);
 	const [isGenerating, setIsGenerating] = useState(false);
 
 	const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-	const {
-		bootStatus,
-		writeFile,
-		runNode,
-		error: bootError,
-	} = useWebContainer();
+	const { status, compileAndRender } = useEmailCompiler();
 
 	const width = {
 		desktop: "100%",
@@ -52,20 +49,18 @@ export function EmailPreview({
 
 	const generatePreview = useCallback(
 		async (code: string) => {
-			if (bootStatus !== "ready") return;
-
+			if (status !== "ready") return;
+			if (isStreaming) return;
 			try {
 				setIsGenerating(true);
 
-				await writeFile("index.tsx", code);
-				await runNode(["build.js"]);
-				const result = await runNode(["render.js"]);
+				const result = await compileAndRender(code);
 
-				if (result.exitCode === 0) {
-					onHtmlChange(result.output);
-					setError(null);
+				if (result.error) {
+					setError(result.error);
 				} else {
-					setError(result.output);
+					onHtmlChange(result.html);
+					setError(null);
 				}
 			} catch (err) {
 				if (err instanceof Error) {
@@ -75,11 +70,11 @@ export function EmailPreview({
 				setIsGenerating(false);
 			}
 		},
-		[bootStatus, runNode, writeFile, onHtmlChange],
+		[status, compileAndRender, onHtmlChange, isStreaming],
 	);
 
 	useEffect(() => {
-		if (!code || bootStatus !== "ready") return;
+		if (!code || status !== "ready") return;
 
 		if (debounceRef.current) clearTimeout(debounceRef.current);
 
@@ -90,19 +85,7 @@ export function EmailPreview({
 		return () => {
 			if (debounceRef.current) clearTimeout(debounceRef.current);
 		};
-	}, [code, bootStatus, generatePreview]);
-
-	const bootMessage = {
-		idle: null,
-		booting: "Booting WebContainer...",
-		installing: "Installing dependencies...",
-		ready: null,
-		error: "Failed to initialize preview environment",
-	} as const;
-
-	const isBooting = bootStatus !== "ready";
-	const message =
-		bootMessage[bootStatus] ?? (isGenerating ? "Generating preview..." : null);
+	}, [code, status, generatePreview]);
 
 	const safePreviewHtml = useMemo(
 		() => injectPreviewStyles(previewHtml),
@@ -119,24 +102,20 @@ export function EmailPreview({
 				)}
 				style={{ width }}
 			>
-				{(isBooting || isGenerating) && (
+				{isGenerating && (
 					<div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white/50 backdrop-blur-sm">
 						<Loader2 className="h-8 w-8 animate-spin text-primary" />
-						{message && (
-							<p className="animate-pulse font-medium text-muted-foreground text-sm">
-								{message}
-							</p>
-						)}
+						<p className="animate-pulse font-medium text-muted-foreground text-sm">
+							Generating preview...
+						</p>
 					</div>
 				)}
 
-				{bootError || error ? (
+				{error ? (
 					<div className="absolute inset-0 flex items-center justify-center bg-red-50 p-4 text-red-500">
 						<div className="max-w-md">
 							<p className="mb-2 font-medium">Preview Error</p>
-							<p className="whitespace-pre-wrap font-mono text-xs">
-								{bootError || error}
-							</p>
+							<p className="whitespace-pre-wrap font-mono text-xs">{error}</p>
 						</div>
 					</div>
 				) : (

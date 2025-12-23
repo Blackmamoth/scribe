@@ -1,8 +1,10 @@
 packages:
-    - apps/*
-    - packages/*
+  - apps/*
+  - packages/*
 
 catalog:
-    ai: ^5.0.108
-    better-auth: ^1.4.5
-    dotenv: ^17.2.2
+  '@react-email/components': 1.0.1
+  '@react-email/render': 2.0.0
+  ai: ^5.0.108
+  better-auth: ^1.4.5
+  dotenv: ^17.2.2

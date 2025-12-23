@@ -19,8 +19,8 @@ interface DashboardPreviewPanelProps {
 	isFetchingLatestEmail: boolean;
 	previewHtml: string;
 	onHtmlChange: (html: string) => void;
-	isStreaming?: boolean;
-	isAnimating?: boolean;
+	isStreaming: boolean;
+	isAnimating: boolean;
 }
 
 export function DashboardPreviewPanel({
@@ -74,6 +74,7 @@ export function DashboardPreviewPanel({
 						previewTheme={previewTheme}
 						previewHtml={previewHtml}
 						onHtmlChange={onHtmlChange}
+						isStreaming={isStreaming}
 					/>
 					{isStreaming && (
 						<div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">

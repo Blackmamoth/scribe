@@ -18,7 +18,6 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { ThemeProvider } from "next-themes";
 import { NotFound } from "@/components/not-found";
-import { WebContainerProvider } from "@/context/webcontainer";
 import { getUser } from "@/functions/get-user";
 
 export interface RouterAppContext {
@@ -81,17 +80,15 @@ function RootDocument() {
 					disableTransitionOnChange
 				>
 					<QueryClientProvider client={queryClient}>
-						<WebContainerProvider>
-							<Outlet />
-							<Toaster richColors />
+						<Outlet />
+						<Toaster richColors />
 
-							{!import.meta.env.PROD && (
-								<TanStackRouterDevtools position="bottom-right" />
-							)}
-							<Analytics />
-							<SpeedInsights />
-							<Scripts />
-						</WebContainerProvider>
+						{!import.meta.env.PROD && (
+							<TanStackRouterDevtools position="bottom-right" />
+						)}
+						<Analytics />
+						<SpeedInsights />
+						<Scripts />
 					</QueryClientProvider>
 				</ThemeProvider>
 			</body>
