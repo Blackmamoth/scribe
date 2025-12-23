@@ -9,9 +9,12 @@ import {
 	getLatestEmailCode,
 	getRecentChats,
 } from "@/functions/chat";
+import { authClient } from "@/lib/auth-client";
 
 export function useScribeChat(chatId?: string) {
 	const queryClient = useQueryClient();
+	const { data: session } = authClient.useSession();
+
 	const [offset, setOffset] = useState(0);
 	const [allChats, setAllChats] = useState<Chat[]>([]);
 	const [hasMore, setHasMore] = useState(true);
@@ -75,7 +78,7 @@ export function useScribeChat(chatId?: string) {
 	const chatsQuery = useQuery({
 		queryKey: ["chats", offset],
 		queryFn: () => getRecentChats({ data: { limit: 10, offset } }),
-		enabled: hasMore,
+		enabled: hasMore && !!session?.user,
 	});
 
 	const fetchMoreChats = useCallback(() => {

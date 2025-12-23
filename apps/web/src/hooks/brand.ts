@@ -8,13 +8,16 @@ import {
 	updateBrand,
 	uploadBrandLogo,
 } from "@/functions/brand";
+import { authClient } from "@/lib/auth-client";
 
 export function useBrand() {
 	const queryClient = useQueryClient();
+	const { data: session } = authClient.useSession();
 
 	const brandsQuery = useQuery({
 		queryKey: ["brands"],
 		queryFn: () => getBrands({ data: {} }),
+		enabled: !!session?.user,
 	});
 
 	const uploadBrandMutation = useMutation({
