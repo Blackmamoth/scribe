@@ -50,7 +50,6 @@ export function SignupForm() {
 					onSuccess: () => {
 						setIsLoading(false);
 						toast.success("Signed up successfully!");
-						// router.push(`/verify-email?email=${value.email}`);
 						navigate({ to: "/verify-email", search: { email: value.email } });
 					},
 					onError: async (ctx) => {

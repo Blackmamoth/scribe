@@ -60,6 +60,7 @@ function RouteComponent() {
 		}
 
 		setIsLoading(false);
+
 		toast.success("Email verified successfully!");
 		navigate({ to: "/" });
 	};

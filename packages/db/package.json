@@ -20,18 +20,18 @@
 		"db:down": "docker compose down"
 	},
 	"devDependencies": {
-		"drizzle-kit": "^0.31.2",
+		"@scribe/config": "workspace:*",
 		"@types/pg": "^8.11.11",
-		"@scribe/config": "workspace:*"
+		"drizzle-kit": "^0.31.8"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
 	},
 	"dependencies": {
 		"@scribe/core": "workspace:*",
+		"dotenv": "catalog:",
 		"drizzle-orm": "^0.44.2",
 		"pg": "^8.14.1",
-		"dotenv": "catalog:",
 		"zod": "^4.1.11"
 	}
 }

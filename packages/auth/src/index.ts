@@ -2,11 +2,13 @@ import { EmailVerification, ResetPasswordEmail } from "@scribe/core/email";
 import { env } from "@scribe/core/env";
 import { resend } from "@scribe/core/resend";
 // import { redis } from "@scribe/core/redis";
-import { db } from "@scribe/db";
+import { db, eq } from "@scribe/db";
 import * as schema from "@scribe/db/schema/auth";
+import { brand } from "@scribe/db/schema/brand";
+import { chat } from "@scribe/db/schema/chat";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { emailOTP } from "better-auth/plugins";
+import { anonymous, emailOTP } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 
 export const auth = betterAuth({
@@ -50,6 +52,28 @@ export const auth = betterAuth({
 		autoSignInAfterVerification: true,
 	},
 	plugins: [
+		anonymous({
+			onLinkAccount: async ({ anonymousUser, newUser }) => {
+				await db.transaction(async (tx) => {
+					await tx
+						.update(brand)
+						.set({ userId: newUser.user.id })
+						.where(eq(brand.userId, anonymousUser.user.id));
+
+					await tx
+						.update(chat)
+						.set({ userId: newUser.user.id })
+						.where(eq(chat.userId, anonymousUser.user.id));
+				});
+			},
+			generateName: () => {
+				const shortId = Math.random()
+					.toString(36)
+					.substring(2, 6)
+					.toUpperCase();
+				return `Guest User ${shortId}`;
+			},
+		}),
 		emailOTP({
 			overrideDefaultEmailVerification: true,
 			sendVerificationOnSignUp: true,

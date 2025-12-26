@@ -57,6 +57,13 @@
 			"when": 1766506033937,
 			"tag": "0007_omniscient_storm",
 			"breakpoints": true
+		},
+		{
+			"idx": 8,
+			"version": "7",
+			"when": 1766746208853,
+			"tag": "0008_adorable_shockwave",
+			"breakpoints": true
 		}
 	]
 }

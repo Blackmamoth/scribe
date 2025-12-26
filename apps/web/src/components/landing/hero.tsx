@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { BrandSelector } from "@/components/brands/brand-selector";
 import { ChatOptions } from "@/components/chat/chat-options";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,8 +25,10 @@ export function Hero() {
 
 	const handleSendMessage = async () => {
 		if (!isAuthenticated) {
-			navigate({ to: "/signin" });
-			return;
+			const { data: signInData } = await authClient.signIn.anonymous();
+			if (signInData?.user) {
+				toast.success("You're signed in as a guest");
+			}
 		}
 		if (input.trim()) {
 			const id = await createChat({

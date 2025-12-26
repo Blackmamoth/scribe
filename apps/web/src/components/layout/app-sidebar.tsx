@@ -8,6 +8,7 @@ import {
 	Settings,
 	Sun,
 	Trash2,
+	UserPlus,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -64,6 +65,7 @@ export function AppSidebar() {
 	} = useScribeChat();
 
 	const { data } = authClient.useSession();
+	const isAnonymous = data?.user?.isAnonymous;
 
 	const navigate = useNavigate();
 	const { location } = useRouterState();
@@ -332,11 +334,18 @@ export function AppSidebar() {
 											</AvatarFallback>
 										</Avatar>
 										<div className="grid flex-1 text-left text-sm leading-tight">
-											<span className="truncate font-semibold">
-												{data?.user?.name}
-											</span>
+											<div className="flex items-center gap-2">
+												<span className="truncate font-semibold">
+													{data?.user.name}
+												</span>
+												{isAnonymous && (
+													<span className="rounded-full bg-muted px-2 py-0.5 font-medium text-[10px] text-muted-foreground">
+														Guest
+													</span>
+												)}
+											</div>
 											<span className="truncate text-xs">
-												{data?.user?.email}
+												{data?.user.email}
 											</span>
 										</div>
 									</div>
@@ -352,6 +361,17 @@ export function AppSidebar() {
 									)}
 									{theme === "light" ? "Dark Mode" : "Light Mode"}
 								</DropdownMenuItem>
+								{isAnonymous && (
+									<>
+										<DropdownMenuSeparator />
+										<DropdownMenuItem
+											onClick={() => navigate({ to: "/signup" })}
+										>
+											<UserPlus className="mr-2 h-4 w-4" />
+											Create Account
+										</DropdownMenuItem>
+									</>
+								)}
 								<DropdownMenuSeparator />
 								<DropdownMenuItem
 									onClick={async () => {

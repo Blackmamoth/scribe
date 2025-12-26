@@ -8,6 +8,7 @@ export function Header() {
 	const { theme, setTheme } = useTheme();
 
 	const { data } = authClient.useSession();
+	const isAnonymous = data?.user?.isAnonymous;
 
 	return (
 		<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -24,17 +25,17 @@ export function Header() {
 						<span className="sr-only">Toggle theme</span>
 					</Button>
 
-					{!data?.user && (
-						<>
-							{" "}
-							<Button variant="ghost" asChild>
-								<Link to="/signin">Sign In</Link>
-							</Button>
-							<Button asChild>
-								<Link to="/signup">Get Started</Link>
-							</Button>{" "}
-						</>
-					)}
+					{!data?.user ||
+						(isAnonymous && (
+							<>
+								<Button variant="ghost" asChild>
+									<Link to="/signin">Sign In</Link>
+								</Button>
+								<Button asChild>
+									<Link to="/signup">Get Started</Link>
+								</Button>
+							</>
+						))}
 				</div>
 			</div>
 		</header>

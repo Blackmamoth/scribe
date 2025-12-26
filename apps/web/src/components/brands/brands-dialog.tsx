@@ -2,7 +2,6 @@ import type { Brand } from "@scribe/db/types";
 import { useForm } from "@tanstack/react-form";
 import { Info, Upload, X } from "lucide-react";
 import { useEffect } from "react";
-import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {

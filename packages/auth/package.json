@@ -17,10 +17,10 @@
 		"typescript": "^5"
 	},
 	"dependencies": {
+		"@scribe/core": "workspace:*",
+		"@scribe/db": "workspace:*",
 		"better-auth": "catalog:",
 		"dotenv": "catalog:",
-		"zod": "^4.1.11",
-		"@scribe/db": "workspace:*",
-		"@scribe/core": "workspace:*"
+		"zod": "^4.1.11"
 	}
 }

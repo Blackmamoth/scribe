@@ -4,7 +4,7 @@ import { SigninForm } from "@/components/auth/signin-form";
 export const Route = createFileRoute("/signin")({
 	component: RouteComponent,
 	beforeLoad: async ({ context }) => {
-		if (context.user) {
+		if (context.user && !context.user.isAnonymous) {
 			throw redirect({ to: "/" });
 		}
 	},

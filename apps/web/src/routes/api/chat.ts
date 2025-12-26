@@ -187,7 +187,6 @@ export const Route = createFileRoute("/api/chat")({
 					return stream.toUIMessageStreamResponse({
 						sendReasoning: true,
 						onFinish: async ({ responseMessage }) => {
-							console.log(responseMessage);
 							await saveChatResponse(
 								chatId,
 								latestUserMessage,
