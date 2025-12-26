@@ -65,7 +65,7 @@ scribe/
 
 - `pnpm run dev`: Start all applications in development mode
 - `pnpm run build`: Build all applications
-- `pnpm run check-types`: Check TypeScript types across all apps
+- `pnpm run typecheck`: Check TypeScript types across all apps
 - `pnpm run db:push`: Push schema changes to database
 - `pnpm run db:studio`: Open database studio UI
 - `pnpm run check`: Run Biome formatting and linting

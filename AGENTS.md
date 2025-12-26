@@ -6,7 +6,7 @@
 - `pnpm lint` - Run Biome linter and auto-fix
 - `pnpm lint:fix` - Run Biome linter with unsafe fixes
 - `pnpm format` - Format code with Biome
-- `pnpm check-types` - Run TypeScript type checking across monorepo
+- `pnpm typecheck` - Run TypeScript type checking across monorepo
 
 ## Testing
 No test framework currently configured. To add tests, set up Vitest or Jest in package.json.

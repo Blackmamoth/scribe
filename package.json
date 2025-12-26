@@ -13,7 +13,7 @@
 		"prepare": "husky",
 		"dev": "turbo dev",
 		"build": "turbo build",
-		"check-types": "turbo check-types",
+		"typecheck": "turbo typecheck",
 		"dev:native": "turbo -F native dev",
 		"dev:web": "turbo -F web dev",
 		"db:push": "turbo -F @scribe/db db:push",

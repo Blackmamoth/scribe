@@ -18,7 +18,9 @@
 		}
 	},
 	"type": "module",
-	"scripts": {},
+	"scripts": {
+		"typecheck": "tsc --build"
+	},
 	"devDependencies": {
 		"@scribe/config": "workspace:*",
 		"@types/react": "~19.1.17"
