@@ -54,8 +54,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 			}
 
 			return { user: session.user, session: session.session };
-		} catch (error) {
-			console.error(error);
+		} catch (_error) {
 			return { user: undefined, session: undefined };
 		}
 	},

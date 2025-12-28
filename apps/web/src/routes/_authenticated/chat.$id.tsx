@@ -22,12 +22,8 @@ export const Route = createFileRoute("/_authenticated/chat/$id")({
 	loader: async ({ params }) => {
 		try {
 			const chat = await getChat({ data: { id: params.id } });
-			if (!chat) {
-				throw notFound();
-			}
 			return { chat };
-		} catch (error) {
-			console.error(error);
+		} catch (_error) {
 			throw notFound();
 		}
 	},
@@ -225,8 +221,7 @@ function RouteComponent() {
 		try {
 			await sendTestEmail({ data: { id: chatId } });
 			toast.success(`Test email sent to ${user.email}`, { id: toastId });
-		} catch (error) {
-			console.error("Failed to send test email:", error);
+		} catch (_error) {
 			toast.error("Failed to send test email", { id: toastId });
 		}
 	};

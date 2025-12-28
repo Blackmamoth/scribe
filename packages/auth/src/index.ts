@@ -1,6 +1,8 @@
 import { EmailVerification, ResetPasswordEmail } from "@scribe/core/email";
+import { sendEmail } from "@scribe/core/email/utils/send-email";
 import { env } from "@scribe/core/env";
-import { resend } from "@scribe/core/resend";
+import { APIError } from "@scribe/core/errors";
+import LOGGER from "@scribe/core/logger";
 // import { redis } from "@scribe/core/redis";
 import { db, eq } from "@scribe/db";
 import * as schema from "@scribe/db/schema/auth";
@@ -54,17 +56,38 @@ export const auth = betterAuth({
 	plugins: [
 		anonymous({
 			onLinkAccount: async ({ anonymousUser, newUser }) => {
-				await db.transaction(async (tx) => {
-					await tx
-						.update(brand)
-						.set({ userId: newUser.user.id })
-						.where(eq(brand.userId, anonymousUser.user.id));
-
-					await tx
-						.update(chat)
-						.set({ userId: newUser.user.id })
-						.where(eq(chat.userId, anonymousUser.user.id));
+				const logger = LOGGER.child({
+					anonymous_user_id: anonymousUser.user.id,
+					new_user_id: newUser.user.id,
 				});
+
+				try {
+					logger.info("linking guest user data to new user");
+
+					await db.transaction(async (tx) => {
+						await tx
+							.update(brand)
+							.set({ userId: newUser.user.id })
+							.where(eq(brand.userId, anonymousUser.user.id));
+
+						await tx
+							.update(chat)
+							.set({ userId: newUser.user.id })
+							.where(eq(chat.userId, anonymousUser.user.id));
+					});
+
+					logger.info("successfully linked guest user data");
+				} catch (error) {
+					logger.error(
+						error,
+						"database transaction failed to link guest user account",
+					);
+
+					throw new APIError(
+						"INTERNAL_SERVER_ERROR",
+						"an error occured while linking your account",
+					);
+				}
 			},
 			generateName: () => {
 				const shortId = Math.random()
@@ -79,17 +102,17 @@ export const auth = betterAuth({
 			sendVerificationOnSignUp: true,
 			sendVerificationOTP: async (data) => {
 				if (data.type === "email-verification") {
-					await resend.emails.send({
+					LOGGER.debug({ ...data }, "otp verification details");
+
+					await sendEmail({
 						subject: "Email verification for your Scribe account",
-						to: data.email,
-						from: env.RESEND_SENDER_EMAIL,
+						receiverEmails: data.email,
 						react: EmailVerification({ otpCode: data.otp }),
 					});
 				} else if (data.type === "forget-password") {
-					await resend.emails.send({
+					await sendEmail({
 						subject: "Reset your Scribe password",
-						to: data.email,
-						from: env.RESEND_SENDER_EMAIL,
+						receiverEmails: data.email,
 						react: ResetPasswordEmail({ otpCode: data.otp }),
 					});
 				}

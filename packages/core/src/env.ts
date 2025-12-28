@@ -4,7 +4,13 @@ import "dotenv/config";
 
 export const env = createEnv({
 	server: {
+		// DATABASE
 		DATABASE_URL: z.url(),
+		MAX_DB_CONNECTIONS: z.coerce.number().default(10),
+		MIN_DB_CONNECTIONS: z.coerce.number().default(2),
+		IDLE_TIMEOUT_IN_SECONDS: z.coerce.number().default(30),
+		CONNECTION_TIMEOUT_IN_SECONDS: z.coerce.number().default(5),
+
 		REDIS_URL: z.url().optional(),
 		CORS_ORIGIN: z.url(),
 		// CLOUDFLARE

@@ -1,6 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
-
+import LOGGER from "../../logger";
 import {
 	buildChatTitleUserPrompt,
 	CHAT_TITLE_SYSTEM_PROMPT,
@@ -18,7 +18,7 @@ export const generateChatTitle = async (message: string) => {
 
 		return text;
 	} catch (error) {
-		console.error(error);
+		LOGGER.error(error, "failed to generate new chat title");
 		return "New Chat";
 	}
 };

@@ -1,6 +1,7 @@
 import { JSXTransformer } from "@scribe/core/email";
-import { env } from "@scribe/core/env";
-import { resend } from "@scribe/core/resend";
+import { sendEmail } from "@scribe/core/email/utils/send-email";
+import { APIError } from "@scribe/core/errors";
+import LOGGER from "@scribe/core/logger";
 import { db } from "@scribe/db";
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
@@ -11,47 +12,55 @@ export const sendTestEmail = createServerFn({ method: "POST" })
 	.inputValidator(z.object({ id: z.uuid() }))
 	.handler(async ({ context, data }) => {
 		if (!context.session) {
-			throw new Error("Unauthenticated");
+			throw new APIError("UNAUTHENTICATED", "unauthenticated");
 		}
 
 		const userId = context.session.user.id;
 		const chatId = data.id;
 
-		const chat = await db.query.chat.findFirst({
-			where: (chats, { and, eq }) =>
-				and(eq(chats.id, chatId), eq(chats.userId, userId)),
-		});
-
-		if (!chat) {
-			throw new Error("Invalid chat ID");
-		}
-
-		const latestEmailVersion = await db.query.emailVersions.findFirst({
-			where: (emailVersions, { eq }) => eq(emailVersions.chatId, chatId),
-			orderBy: (emailVersions, { desc }) => desc(emailVersions.version),
-		});
-
-		if (!latestEmailVersion) {
-			throw new Error("No version of code exists for this chat");
-		}
-
-		const transformer = new JSXTransformer();
-
-		let html = "";
+		const logger = LOGGER.child({ user_id: userId, chat_id: chatId });
 
 		try {
-			html = await transformer.renderEmail(latestEmailVersion.code);
+			const chat = await db.query.chat.findFirst({
+				where: (chats, { and, eq }) =>
+					and(eq(chats.id, chatId), eq(chats.userId, userId)),
+			});
+
+			if (!chat) {
+				logger.warn(
+					"attempted to send test email of a non-existent or unauthorized chat",
+				);
+				throw new APIError("BAD_REQUEST", "invalid chat id");
+			}
+
+			const latestEmailVersion = await db.query.emailVersions.findFirst({
+				where: (emailVersions, { eq }) => eq(emailVersions.chatId, chatId),
+				orderBy: (emailVersions, { desc }) => desc(emailVersions.version),
+			});
+
+			if (!latestEmailVersion) {
+				logger.warn("attempted to send test email of a chat without an email");
+				throw new APIError(
+					"BAD_REQUEST",
+					"this chat does not have a valid email body",
+				);
+			}
+
+			const transformer = new JSXTransformer();
+
+			const html = await transformer.renderEmail(latestEmailVersion.code);
+
+			await sendEmail({
+				subject: chat.title,
+				receiverEmails: context.session.user.email,
+				html: html,
+			});
 		} catch (error) {
-			console.error(error);
-			throw new Error(
-				"Could not generate your email content, please try again",
+			if (error instanceof APIError) throw error;
+			logger.error(error, "failed to send test email using resend");
+			throw new APIError(
+				"INTERNAL_SERVER_ERROR",
+				"failed to send test email, please try again later",
 			);
 		}
-
-		await resend.emails.send({
-			subject: chat.title,
-			to: context.session.user.email,
-			from: env.RESEND_SENDER_EMAIL,
-			html: html,
-		});
 	});
