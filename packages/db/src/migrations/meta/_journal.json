@@ -64,6 +64,20 @@
 			"when": 1766746208853,
 			"tag": "0008_adorable_shockwave",
 			"breakpoints": true
+		},
+		{
+			"idx": 9,
+			"version": "7",
+			"when": 1766929280160,
+			"tag": "0009_last_apocalypse",
+			"breakpoints": true
+		},
+		{
+			"idx": 10,
+			"version": "7",
+			"when": 1766932941425,
+			"tag": "0010_slim_sentinel",
+			"breakpoints": true
 		}
 	]
 }

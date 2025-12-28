@@ -1,0 +1,1 @@
+ALTER TABLE "test_email_sends" RENAME COLUMN "email_code_hash" TO "email_version";

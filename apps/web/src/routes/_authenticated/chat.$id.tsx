@@ -221,8 +221,12 @@ function RouteComponent() {
 		try {
 			await sendTestEmail({ data: { id: chatId } });
 			toast.success(`Test email sent to ${user.email}`, { id: toastId });
-		} catch (_error) {
-			toast.error("Failed to send test email", { id: toastId });
+		} catch (error) {
+			if (error instanceof Error) {
+				toast.error(error.message, { id: toastId });
+			} else {
+				toast.error("failed to send test email", { id: toastId });
+			}
 		}
 	};
 
