@@ -16,7 +16,7 @@ export const handleChat = (
 	},
 ) => {
 	const response = streamText({
-		model: openai("gpt-4o-mini"),
+		model: openai("gpt-4.1-mini"),
 		messages: convertToModelMessages(messages),
 		system: buildScribeUserPrompt({
 			preset: preset ?? "announcement",

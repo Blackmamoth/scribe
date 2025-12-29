@@ -229,6 +229,17 @@ export const Route = createFileRoute("/api/chat")({
 					return stream.toUIMessageStreamResponse({
 						sendReasoning: true,
 						onFinish: async ({ responseMessage }) => {
+							logger.debug({
+								ai_response: {
+									text: responseMessage.parts
+										.map((part) => (part.type === "text" ? part.text : ""))
+										.join(""),
+									reasoning: responseMessage.parts
+										.map((part) => (part.type === "reasoning" ? part.text : ""))
+										.join(""),
+								},
+							});
+
 							await saveChatResponse(
 								chatId,
 								latestUserMessage,

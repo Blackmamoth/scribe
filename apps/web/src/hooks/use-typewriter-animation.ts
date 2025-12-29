@@ -24,7 +24,7 @@ interface UseTypewriterAnimationOptions {
 export function useTypewriterAnimation(
 	options: UseTypewriterAnimationOptions = {},
 ) {
-	const { eraseSpeed = 15, typeSpeed = 10, onComplete } = options;
+	const { eraseSpeed = 1, typeSpeed = 1, onComplete } = options;
 
 	const [state, setState] = useState<TypewriterState>({
 		isAnimating: false,
