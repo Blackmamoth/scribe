@@ -31,4 +31,4 @@ export const db = drizzle({
 	schema,
 });
 
-export { and, eq, inArray } from "drizzle-orm";
+export { and, eq, gt, gte, inArray, ne } from "drizzle-orm";

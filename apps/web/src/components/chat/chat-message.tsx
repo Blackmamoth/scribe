@@ -1,6 +1,8 @@
 import type { ParsedScribeMessage } from "@scribe/core/ai/service/chat";
-import { Sparkles, User } from "lucide-react";
+import type { User } from "better-auth";
+import { RotateCcw, Sparkles, User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface ChatMessageProps {
@@ -11,15 +13,17 @@ interface ChatMessageProps {
 		parsed?: ParsedScribeMessage;
 	};
 	onRestore?: (code: string) => void;
-	user?: {
-		id: string;
-		name: string;
-		email: string;
-		image?: string | null;
-	};
+	onRollback?: () => void;
+	showRollbackButton?: boolean;
+	user?: User;
 }
 
-export function ChatMessage({ message, user }: ChatMessageProps) {
+export function ChatMessage({
+	message,
+	user,
+	onRollback,
+	showRollbackButton = false,
+}: ChatMessageProps) {
 	const isUser = message.role === "user";
 
 	const getInitials = (name: string) => {
@@ -45,7 +49,7 @@ export function ChatMessage({ message, user }: ChatMessageProps) {
 							{user?.name ? (
 								getInitials(user.name)
 							) : (
-								<User className="h-4 w-4" />
+								<UserIcon className="h-4 w-4" />
 							)}
 						</AvatarFallback>
 					</>
@@ -55,7 +59,21 @@ export function ChatMessage({ message, user }: ChatMessageProps) {
 					</AvatarFallback>
 				)}
 			</Avatar>
-			<div className="flex max-w-[80%] flex-col gap-1">
+			<div className="relative flex max-w-[80%] flex-col gap-1">
+				{isUser && showRollbackButton && (
+					<Button
+						variant="ghost"
+						size="icon-sm"
+						className={cn(
+							"-top-2 absolute opacity-0 transition-opacity group-hover:opacity-100",
+							isUser ? "-right-10" : "-left-10",
+						)}
+						onClick={onRollback}
+						title="Rollback to this point"
+					>
+						<RotateCcw className="h-4 w-4" />
+					</Button>
+				)}
 				<div
 					className={cn(
 						"flex flex-col gap-2 rounded-lg px-4 py-3 text-sm",

@@ -3,10 +3,11 @@ import type { EmailPreset, EmailTone } from "@scribe/db/types";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { DefaultChatTransport } from "ai";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DashboardChatPanel } from "@/components/dashboard/dashboard-chat-panel";
 import { DashboardPreviewPanel } from "@/components/dashboard/dashboard-preview-panel";
+import { RollbackDialog } from "@/components/rollback-dialog";
 import { ChatPageSkeleton } from "@/components/skeletons/chat-page-skeleton";
 import {
 	ResizableHandle,
@@ -16,6 +17,7 @@ import {
 import { getChat } from "@/functions/chat";
 import { sendTestEmail } from "@/functions/email";
 import { useScribeChat } from "@/hooks/chat";
+import { useEmailVersions } from "@/hooks/use-email-versions";
 
 export const Route = createFileRoute("/_authenticated/chat/$id")({
 	component: RouteComponent,
@@ -42,8 +44,16 @@ function RouteComponent() {
 		isFetchingLatestEmail,
 	} = useScribeChat(chatId);
 
+	const { versions, rollback } = useEmailVersions(chatId);
+
 	const [input, setInput] = useState("");
 	const [_isLoading, _setIsLoading] = useState(false);
+
+	const [rollbackDialogOpen, setRollbackDialogOpen] = useState(false);
+	const [pendingRollbackVersion, setPendingRollbackVersion] = useState<{
+		versionId: string;
+		version: number;
+	} | null>(null);
 
 	const [generatedCode, setGeneratedCode] = useState("");
 	const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
@@ -58,10 +68,32 @@ function RouteComponent() {
 	const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("light");
 	const [previewHtml, setPreviewHtml] = useState("");
 
-	// Typewriter animation state
 	const [isAnimating, setIsAnimating] = useState(false);
 	const [animatedCode, setAnimatedCode] = useState("");
 	const animationRef = useRef<{ cancelled: boolean }>({ cancelled: false });
+
+	const messageWithVersionMap = useMemo(() => {
+		const map = new Map<string, boolean>();
+		if (!chatSession?.chatMessages || versions.length === 0) {
+			return map;
+		}
+
+		const messageIdsWithVersions = new Set(
+			versions
+				.map((v) => v.chatMessageId)
+				.filter((id): id is string => id !== null),
+		);
+
+		chatSession.chatMessages.forEach((msg) => {
+			map.set(msg.id, messageIdsWithVersions.has(msg.id));
+		});
+
+		return map;
+	}, [chatSession?.chatMessages, versions]);
+
+	const currentVersion = useMemo(() => {
+		return versions.length > 0 ? versions[0].version : null;
+	}, [versions]);
 
 	// Callback for when code is patched (diff applied) - triggers typewriter animation
 	const handleCodePatched = useCallback(
@@ -230,6 +262,47 @@ function RouteComponent() {
 		}
 	};
 
+	const handleRollbackFromVersionSelector = (
+		versionId: string,
+		version: number,
+	) => {
+		setPendingRollbackVersion({ versionId, version });
+		setRollbackDialogOpen(true);
+	};
+
+	const handleConfirmRollback = async () => {
+		if (!pendingRollbackVersion) return;
+
+		try {
+			await rollback(pendingRollbackVersion.versionId);
+			setRollbackDialogOpen(false);
+			setPendingRollbackVersion(null);
+		} catch (error) {
+			if (error instanceof Error) {
+				toast.error(error.message);
+			}
+		}
+	};
+
+	const handleRollbackFromMessage = (messageId: string) => {
+		const targetVersionData = versions.find(
+			(v) => v.chatMessageId === messageId,
+		);
+
+		if (!targetVersionData) {
+			toast.error("Unable to rollback", {
+				description: "No email version exists for this message",
+			});
+			return;
+		}
+
+		setPendingRollbackVersion({
+			versionId: targetVersionData.id,
+			version: targetVersionData.version,
+		});
+		setRollbackDialogOpen(true);
+	};
+
 	if (isLoadingChatSession) {
 		return <ChatPageSkeleton />;
 	}
@@ -268,6 +341,8 @@ function RouteComponent() {
 								status={status}
 								stop={stop}
 								user={user}
+								messageVersions={messageWithVersionMap}
+								onRollbackFromMessage={handleRollbackFromMessage}
 							/>
 						</ResizablePanel>
 
@@ -291,11 +366,28 @@ function RouteComponent() {
 								onHtmlChange={setPreviewHtml}
 								isStreaming={status === "streaming"}
 								isAnimating={isAnimating}
+								versions={versions}
+								currentVersion={currentVersion}
+								onOpenRollbackDialog={handleRollbackFromVersionSelector}
 							/>
 						</ResizablePanel>
 					</ResizablePanelGroup>
 				</motion.div>
 			</AnimatePresence>
+
+			{pendingRollbackVersion && (
+				<RollbackDialog
+					open={rollbackDialogOpen}
+					onOpenChange={setRollbackDialogOpen}
+					onConfirm={handleConfirmRollback}
+					targetVersion={pendingRollbackVersion.version}
+					messageCountToDelete={
+						versions.length > 0
+							? versions[0].version - pendingRollbackVersion.version
+							: 0
+					}
+				/>
+			)}
 		</div>
 	);
 }

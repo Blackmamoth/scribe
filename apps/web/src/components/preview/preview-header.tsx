@@ -18,6 +18,8 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { VersionSelector } from "@/components/version-selector";
+import type { EmailVersion } from "@/hooks/use-email-versions";
 import { cn } from "@/lib/utils";
 
 interface PreviewHeaderProps {
@@ -30,6 +32,9 @@ interface PreviewHeaderProps {
 	onSendTest: () => void;
 	previewTheme: "light" | "dark";
 	setPreviewTheme: (theme: "light" | "dark") => void;
+	versions?: EmailVersion[];
+	currentVersion: number | null;
+	onOpenRollbackDialog?: (versionId: string, version: number) => void;
 }
 
 export function PreviewHeader({
@@ -42,6 +47,9 @@ export function PreviewHeader({
 	onSendTest,
 	previewTheme,
 	setPreviewTheme,
+	versions,
+	currentVersion,
+	onOpenRollbackDialog,
 }: PreviewHeaderProps) {
 	const handleCopy = () => {
 		onCopyHtml();
@@ -49,7 +57,14 @@ export function PreviewHeader({
 	};
 	return (
 		<div className="flex items-center justify-between border-b bg-background/95 p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-			<div className="flex items-center gap-1">
+			<div className="flex items-center gap-2">
+				{versions && onOpenRollbackDialog && (
+					<VersionSelector
+						versions={versions}
+						currentVersion={currentVersion}
+						onOpenDialog={onOpenRollbackDialog}
+					/>
+				)}
 				<div className="flex items-center rounded-lg border bg-muted/50 p-1">
 					<TooltipProvider>
 						<Tooltip>

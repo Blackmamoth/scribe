@@ -2,6 +2,7 @@ import type { UIMessage } from "@ai-sdk/react";
 import { applyDiff, formatApplyError, parseDiff } from "@scribe/core/ai";
 import { processScribeMessages } from "@scribe/core/ai/service/chat";
 import type { EmailPreset, EmailTone } from "@scribe/db/types";
+import type { User } from "better-auth";
 import { Square } from "lucide-react";
 import {
 	type Dispatch,
@@ -38,12 +39,9 @@ interface DashboardChatPanelProps {
 	) => void;
 	status: "submitted" | "streaming" | "error" | "ready";
 	stop: () => void;
-	user?: {
-		id: string;
-		name: string;
-		email: string;
-		image?: string | null;
-	};
+	user?: User;
+	messageVersions?: Map<string, boolean>;
+	onRollbackFromMessage?: (messageId: string) => void;
 }
 
 export function DashboardChatPanel({
@@ -64,6 +62,8 @@ export function DashboardChatPanel({
 	status,
 	stop,
 	user,
+	messageVersions,
+	onRollbackFromMessage,
 }: DashboardChatPanelProps) {
 	// Track which message we've already processed to avoid re-applying
 	const lastProcessedMessageIdRef = useRef<string | null>(null);
@@ -152,6 +152,8 @@ export function DashboardChatPanel({
 			<ChatList
 				messages={displayMessages}
 				onRestoreVersion={setGeneratedCode}
+				onRollbackFromMessage={onRollbackFromMessage}
+				messageVersions={messageVersions}
 				user={user}
 			/>
 			<div className="relative">

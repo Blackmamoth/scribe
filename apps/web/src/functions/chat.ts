@@ -5,8 +5,8 @@ import {
 	createChatSchema,
 	getRecentChatsSchema,
 } from "@scribe/core/validation";
-import { and, db, eq } from "@scribe/db";
-import { chat } from "@scribe/db/schema/chat";
+import { and, db, eq, gt, gte, ne } from "@scribe/db";
+import { chat, chatMessage, emailVersions } from "@scribe/db/schema/chat";
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 import { authMiddleware } from "@/middleware/auth";
@@ -260,6 +260,159 @@ export const deleteChat = createServerFn({ method: "POST" })
 			throw new APIError(
 				"INTERNAL_SERVER_ERROR",
 				"failed to delete chat, please try again",
+			);
+		}
+	});
+
+export const getEmailVersions = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.inputValidator(z.object({ chatId: z.uuid() }))
+	.handler(async ({ context, data }) => {
+		if (!context.session) {
+			throw new APIError("UNAUTHENTICATED", "unauthenticated");
+		}
+
+		const userId = context.session.user.id;
+		const { chatId } = data;
+
+		const logger = LOGGER.child({ user_id: userId, chat_id: chatId });
+
+		try {
+			const chatExists = await db.query.chat.findFirst({
+				columns: { id: true },
+				where: (chats, { and, eq }) =>
+					and(eq(chats.userId, userId), eq(chats.id, chatId)),
+			});
+
+			if (!chatExists) {
+				logger.warn(
+					"attempted to fetch versions for non-existent or unauthorized chat",
+				);
+				throw new APIError("BAD_REQUEST", "invalid chat id");
+			}
+
+			const versions = await db.query.emailVersions.findMany({
+				columns: {
+					id: true,
+					version: true,
+					createdAt: true,
+					chatMessageId: true,
+				},
+				where: (emailVersions, { eq }) => eq(emailVersions.chatId, chatId),
+				orderBy: (emailVersions, { desc }) => desc(emailVersions.version),
+			});
+
+			return versions;
+		} catch (error) {
+			if (error instanceof APIError) throw error;
+			logger.error(error, "failed to fetch email versions from database");
+			throw new APIError(
+				"INTERNAL_SERVER_ERROR",
+				"failed to fetch email versions, please try again",
+			);
+		}
+	});
+
+export const rollbackToVersion = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.inputValidator(z.object({ chatId: z.uuid(), versionId: z.uuid() }))
+	.handler(async ({ context, data }) => {
+		if (!context.session) {
+			throw new APIError("UNAUTHENTICATED", "unauthenticated");
+		}
+
+		const userId = context.session.user.id;
+		const { chatId, versionId } = data;
+
+		const logger = LOGGER.child({ user_id: userId, chat_id: chatId });
+
+		try {
+			const chatExists = await db.query.chat.findFirst({
+				columns: { id: true },
+				where: (chats, { and, eq }) =>
+					and(eq(chats.userId, userId), eq(chats.id, chatId)),
+			});
+
+			if (!chatExists) {
+				logger.warn("attempted to rollback non-existent or unauthorized chat");
+				throw new APIError("BAD_REQUEST", "invalid chat id");
+			}
+
+			const targetVersion = await db.query.emailVersions.findFirst({
+				columns: {
+					id: true,
+					version: true,
+					code: true,
+					chatMessageId: true,
+				},
+				with: {
+					message: {
+						columns: {
+							createdAt: true,
+						},
+					},
+				},
+				where: (emailVersions, { and, eq }) =>
+					and(
+						eq(emailVersions.chatId, chatId),
+						eq(emailVersions.id, versionId),
+					),
+			});
+
+			if (!targetVersion) {
+				logger.warn("attempted to rollback to non-existent version");
+				throw new APIError("BAD_REQUEST", "invalid version id");
+			}
+
+			await db.transaction(async (tx) => {
+				const versionStillExists = await tx.query.emailVersions.findFirst({
+					columns: { version: true },
+					where: (emailVersions, { and, eq }) =>
+						and(
+							eq(emailVersions.chatId, chatId),
+							eq(emailVersions.id, versionId),
+						),
+				});
+
+				if (!versionStillExists) {
+					throw new APIError(
+						"CONFLICT",
+						"version was modified or deleted during rollback",
+					);
+				}
+
+				await tx
+					.delete(emailVersions)
+					.where(
+						and(
+							eq(emailVersions.chatId, chatId),
+							gt(emailVersions.version, targetVersion.version),
+						),
+					);
+
+				if (targetVersion.message) {
+					await tx
+						.delete(chatMessage)
+						.where(
+							and(
+								eq(chatMessage.chatId, chatId),
+								gte(chatMessage.createdAt, targetVersion.message.createdAt),
+								ne(chatMessage.id, targetVersion.chatMessageId),
+							),
+						);
+				}
+			});
+
+			return {
+				code: targetVersion.code,
+				version: targetVersion.version,
+			};
+		} catch (error) {
+			if (error instanceof APIError) throw error;
+			logger.error(error, "failed to rollback chat");
+			throw new APIError(
+				"INTERNAL_SERVER_ERROR",
+				"failed to rollback chat, please try again",
 			);
 		}
 	});

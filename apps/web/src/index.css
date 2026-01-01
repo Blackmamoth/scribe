@@ -27,7 +27,7 @@
 	--secondary-foreground: #1a1a1a;
 	--muted: #f9f9f9;
 	--muted-foreground: #6e6e6e;
-	--accent: #f9f9f9;
+	--accent: #f0f0f0; /* More visible gray */
 	--accent-foreground: #1a1a1a;
 	--destructive: #ef4444;
 	--destructive-foreground: #ffffff;
@@ -63,7 +63,7 @@
 	--secondary-foreground: #ededed;
 	--muted: #181818;
 	--muted-foreground: #a1a1a1;
-	--accent: #181818;
+	--accent: #262626; /* More visible gray */
 	--accent-foreground: #ededed;
 	--destructive: #f87171;
 	--destructive-foreground: #ffffff;

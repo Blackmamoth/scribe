@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { EmailPreview } from "@/components/preview/email-preview";
 import { MonacoEditor } from "@/components/preview/monaco-editor";
 import { PreviewHeader } from "@/components/preview/preview-header";
+import type { EmailVersion } from "@/hooks/use-email-versions";
 import { cn } from "@/lib/utils";
 
 interface DashboardPreviewPanelProps {
@@ -21,6 +22,9 @@ interface DashboardPreviewPanelProps {
 	onHtmlChange: (html: string) => void;
 	isStreaming: boolean;
 	isAnimating: boolean;
+	versions?: EmailVersion[];
+	currentVersion: number | null;
+	onOpenRollbackDialog?: (versionId: string, version: number) => void;
 }
 
 export function DashboardPreviewPanel({
@@ -40,6 +44,9 @@ export function DashboardPreviewPanel({
 	onHtmlChange,
 	isStreaming,
 	isAnimating,
+	versions,
+	currentVersion,
+	onOpenRollbackDialog,
 }: DashboardPreviewPanelProps) {
 	useEffect(() => {
 		if (!isFetchingLatestEmail && latestEmailCode) {
@@ -59,6 +66,9 @@ export function DashboardPreviewPanel({
 				onSendTest={onSendTest}
 				previewTheme={previewTheme}
 				setPreviewTheme={setPreviewTheme}
+				versions={versions}
+				currentVersion={currentVersion}
+				onOpenRollbackDialog={onOpenRollbackDialog}
 			/>
 			<div className="relative flex-1 overflow-hidden">
 				<div
