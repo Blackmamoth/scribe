@@ -5,7 +5,7 @@ import {
 	createChatSchema,
 	getRecentChatsSchema,
 } from "@scribe/core/validation";
-import { and, db, eq, inArray } from "@scribe/db";
+import { and, db, eq, inArray, sql } from "@scribe/db";
 import { chat, chatMessage } from "@scribe/db/schema/chat";
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
@@ -295,6 +295,7 @@ export const getEmailVersions = createServerFn({ method: "POST" })
 				columns: {
 					id: true,
 					version: true,
+					code: true,
 					createdAt: true,
 					chatMessageId: true,
 				},
@@ -313,16 +314,16 @@ export const getEmailVersions = createServerFn({ method: "POST" })
 		}
 	});
 
-export const rollbackToVersion = createServerFn({ method: "POST" })
+export const rollbackToMessage = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator(z.object({ chatId: z.uuid(), versionId: z.uuid() }))
+	.inputValidator(z.object({ chatId: z.uuid(), messageId: z.uuid() }))
 	.handler(async ({ context, data }) => {
 		if (!context.session) {
 			throw new APIError("UNAUTHENTICATED", "unauthenticated");
 		}
 
 		const userId = context.session.user.id;
-		const { chatId, versionId } = data;
+		const { chatId, messageId } = data;
 
 		const logger = LOGGER.child({ user_id: userId, chat_id: chatId });
 
@@ -338,57 +339,54 @@ export const rollbackToVersion = createServerFn({ method: "POST" })
 				throw new APIError("BAD_REQUEST", "invalid chat id");
 			}
 
-			const targetVersion = await db.query.emailVersions.findFirst({
+			const targetMessage = await db.query.chatMessage.findFirst({
 				columns: {
 					id: true,
-					version: true,
-					code: true,
-					chatMessageId: true,
+					role: true,
+					createdAt: true,
 				},
-				with: {
-					message: {
-						columns: {
-							createdAt: true,
-						},
-					},
-				},
-				where: (emailVersions, { and, eq }) =>
-					and(
-						eq(emailVersions.chatId, chatId),
-						eq(emailVersions.id, versionId),
-					),
+				where: (chatMessages, { and, eq }) =>
+					and(eq(chatMessages.id, messageId), eq(chatMessages.chatId, chatId)),
 			});
 
-			if (!targetVersion) {
-				logger.warn("attempted to rollback to non-existent version");
-				throw new APIError("BAD_REQUEST", "invalid version id");
+			console.log(messageId);
+
+			if (!targetMessage) {
+				logger.warn("attempted to rollback to non-existent message");
+				throw new APIError("BAD_REQUEST", "invalid message id");
+			}
+
+			if (targetMessage.role !== "assistant") {
+				logger.warn("attempted to rollback to user message");
+				throw new APIError(
+					"BAD_REQUEST",
+					"can only rollback to assistant messages",
+				);
 			}
 
 			await db.transaction(async (tx) => {
-				const messages = await tx.query.chatMessage.findMany({
-					columns: { id: true, role: true },
-					where: (chatMessages, { and, eq, gte }) =>
+				const messagesToDelete = await tx.query.chatMessage.findMany({
+					columns: { id: true },
+					where: (chatMessages, { and, eq, gt }) =>
 						and(
 							eq(chatMessages.chatId, chatId),
-							gte(chatMessages.createdAt, targetVersion.message.createdAt),
+							gt(
+								sql`date_trunc('second', ${chatMessages.createdAt})`,
+								sql`date_trunc('second', ${targetMessage.createdAt.toISOString()}::timestamp)`,
+							),
 						),
 					orderBy: (chatMessages, { asc }) => asc(chatMessages.createdAt),
 				});
 
-				const keepCount = messages[1]?.role === "assistant" ? 2 : 1;
-				const messageIdsToDelete = messages.slice(keepCount).map((m) => m.id);
-
-				if (messageIdsToDelete.length > 0) {
+				if (messagesToDelete.length > 0) {
+					const messageIds = messagesToDelete.map((m) => m.id);
 					await tx
 						.delete(chatMessage)
-						.where(inArray(chatMessage.id, messageIdsToDelete));
+						.where(inArray(chatMessage.id, messageIds));
 				}
 			});
 
-			return {
-				code: targetVersion.code,
-				version: targetVersion.version,
-			};
+			return { success: true };
 		} catch (error) {
 			if (error instanceof APIError) throw error;
 			logger.error(error, "failed to rollback chat");

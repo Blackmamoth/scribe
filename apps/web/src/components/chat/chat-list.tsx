@@ -12,26 +12,48 @@ interface ChatListProps {
 		parsed?: ParsedScribeMessage;
 	}[];
 	user?: User;
+	onRollback?: (messageId: string) => void;
+	selectedChatMessageId: string | null;
 }
 
-export function ChatList({ messages, user }: ChatListProps) {
+export function ChatList({
+	messages,
+	user,
+	onRollback,
+	selectedChatMessageId,
+}: ChatListProps) {
 	const bottomRef = useRef<HTMLDivElement>(null);
+	const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
 	// biome-ignore lint: this effect intentionally scrolls on every message change
 	useEffect(() => {
-		bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages]);
+		if (!selectedChatMessageId) {
+			bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+		}
+	}, [messages, selectedChatMessageId]);
+
+	useEffect(() => {
+		if (selectedChatMessageId) {
+			const element = messageRefs.current.get(selectedChatMessageId);
+			element?.scrollIntoView({ behavior: "smooth", block: "center" });
+		}
+	}, [selectedChatMessageId]);
 
 	return (
 		<div className="flex-1 space-y-4 overflow-y-auto p-4">
 			{messages.map((message) => (
 				<motion.div
 					key={message.id}
+					ref={(el) => {
+						if (el) {
+							messageRefs.current.set(message.id, el);
+						}
+					}}
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.3 }}
 				>
-					<ChatMessage message={message} user={user} />
+					<ChatMessage message={message} user={user} onRollback={onRollback} />
 				</motion.div>
 			))}
 			<div ref={bottomRef} />

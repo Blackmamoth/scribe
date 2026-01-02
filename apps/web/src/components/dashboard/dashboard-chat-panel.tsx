@@ -40,6 +40,8 @@ interface DashboardChatPanelProps {
 	status: "submitted" | "streaming" | "error" | "ready";
 	stop: () => void;
 	user: User;
+	onRollbackFromMessage: (messageId: string) => void;
+	selectedChatMessageId: string | null;
 }
 
 export function DashboardChatPanel({
@@ -60,6 +62,8 @@ export function DashboardChatPanel({
 	status,
 	stop,
 	user,
+	onRollbackFromMessage,
+	selectedChatMessageId,
 }: DashboardChatPanelProps) {
 	// Track which message we've already processed to avoid re-applying
 	const lastProcessedMessageIdRef = useRef<string | null>(null);
@@ -145,7 +149,12 @@ export function DashboardChatPanel({
 
 	return (
 		<div className="flex h-full flex-col">
-			<ChatList messages={displayMessages} user={user} />
+			<ChatList
+				messages={displayMessages}
+				user={user}
+				onRollback={onRollbackFromMessage}
+				selectedChatMessageId={selectedChatMessageId}
+			/>
 			<div className="relative">
 				<DashboardChatInput
 					input={input}

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { EmailPreview } from "@/components/preview/email-preview";
 import { MonacoEditor } from "@/components/preview/monaco-editor";
 import { PreviewHeader } from "@/components/preview/preview-header";
@@ -23,8 +23,8 @@ interface DashboardPreviewPanelProps {
 	isStreaming: boolean;
 	isAnimating: boolean;
 	versions: EmailVersion[];
-	currentVersion: number | null;
-	onOpenRollbackDialog: (versionId: string, version: number) => void;
+	selectedVersionId: string | null;
+	onSelectVersion: (versionId: string | null) => void;
 	onFixError: (error: string) => void;
 }
 
@@ -46,15 +46,28 @@ export function DashboardPreviewPanel({
 	isStreaming,
 	isAnimating,
 	versions,
-	currentVersion,
-	onOpenRollbackDialog,
+	selectedVersionId,
+	onSelectVersion,
 	onFixError,
 }: DashboardPreviewPanelProps) {
+	const displayedCode = useMemo(() => {
+		if (selectedVersionId) {
+			const selectedVersion = versions.find((v) => v.id === selectedVersionId);
+			return selectedVersion?.code || generatedCode;
+		}
+		return generatedCode;
+	}, [selectedVersionId, versions, generatedCode]);
+
 	useEffect(() => {
-		if (!isFetchingLatestEmail && latestEmailCode) {
+		if (!isFetchingLatestEmail && latestEmailCode && !selectedVersionId) {
 			setGeneratedCode(latestEmailCode);
 		}
-	}, [isFetchingLatestEmail, setGeneratedCode, latestEmailCode]);
+	}, [
+		isFetchingLatestEmail,
+		setGeneratedCode,
+		latestEmailCode,
+		selectedVersionId,
+	]);
 
 	return (
 		<div className="flex h-full flex-col border-l">
@@ -69,8 +82,8 @@ export function DashboardPreviewPanel({
 				previewTheme={previewTheme}
 				setPreviewTheme={setPreviewTheme}
 				versions={versions}
-				currentVersion={currentVersion}
-				onOpenRollbackDialog={onOpenRollbackDialog}
+				selectedVersionId={selectedVersionId}
+				onSelectVersion={onSelectVersion}
 			/>
 			<div className="relative flex-1 overflow-hidden">
 				<div
@@ -81,7 +94,7 @@ export function DashboardPreviewPanel({
 					)}
 				>
 					<EmailPreview
-						code={generatedCode}
+						code={displayedCode}
 						device={device}
 						previewTheme={previewTheme}
 						previewHtml={previewHtml}
@@ -109,7 +122,7 @@ export function DashboardPreviewPanel({
 					)}
 				>
 					<MonacoEditor
-						code={generatedCode}
+						code={displayedCode}
 						onChange={setGeneratedCode}
 						isStreaming={isStreaming}
 						isAnimating={isAnimating}

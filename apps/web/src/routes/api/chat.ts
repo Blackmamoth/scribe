@@ -112,20 +112,19 @@ async function saveChatResponse(
 		.map((part) => (part.type === "text" ? part.text : ""))
 		.join("");
 
-	const insertArr = [
-		{ chatId, message: userMessage, role: "user" as const },
-		{ chatId, message: assistant, role: "assistant" as const },
-	];
-
 	try {
 		await db.transaction(async (tx) => {
-			const [newChatMessages] = await tx
+			const [userChatMessage] = await tx
 				.insert(chatMessage)
-				.values(insertArr)
+				.values({ chatId, message: userMessage, role: "user" })
 				.returning({ chatMessageId: chatMessage.id });
 
+			await tx
+				.insert(chatMessage)
+				.values({ chatId, message: assistant, role: "assistant" });
+
 			if (finalCode?.trim() && !diffError) {
-				const chatMessageId = newChatMessages.chatMessageId;
+				const chatMessageId = userChatMessage.chatMessageId;
 
 				if (chatMessageId) {
 					await tx.insert(emailVersions).values({

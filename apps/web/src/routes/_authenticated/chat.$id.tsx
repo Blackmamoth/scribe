@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DashboardChatPanel } from "@/components/dashboard/dashboard-chat-panel";
 import { DashboardPreviewPanel } from "@/components/dashboard/dashboard-preview-panel";
-import { RollbackDialog } from "@/components/rollback-dialog";
 import { ChatPageSkeleton } from "@/components/skeletons/chat-page-skeleton";
 import {
 	ResizableHandle,
@@ -47,13 +46,10 @@ function RouteComponent() {
 	const { versions, rollback } = useEmailVersions(chatId);
 
 	const [input, setInput] = useState("");
+	const [selectedVersionId, setSelectedVersionId] = useState<string | null>(
+		null,
+	);
 	const [_isLoading, _setIsLoading] = useState(false);
-
-	const [rollbackDialogOpen, setRollbackDialogOpen] = useState(false);
-	const [pendingRollbackVersion, setPendingRollbackVersion] = useState<{
-		versionId: string;
-		version: number;
-	} | null>(null);
 
 	const [generatedCode, setGeneratedCode] = useState("");
 	const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
@@ -72,9 +68,20 @@ function RouteComponent() {
 	const [animatedCode, setAnimatedCode] = useState("");
 	const animationRef = useRef<{ cancelled: boolean }>({ cancelled: false });
 
-	const currentVersion = useMemo(() => {
-		return versions.length > 0 ? versions[0].version : null;
-	}, [versions]);
+	const handleSelectVersion = useCallback((versionId: string | null) => {
+		setSelectedVersionId(versionId);
+	}, []);
+
+	// biome-ignore lint: this effect intentionally sets to null when switching between chats
+	useEffect(() => {
+		setSelectedVersionId(null);
+	}, [chatId]);
+
+	const selectedChatMessageId = useMemo(() => {
+		if (!selectedVersionId) return null;
+		const selectedVersion = versions.find((v) => v.id === selectedVersionId);
+		return selectedVersion?.chatMessageId ?? null;
+	}, [selectedVersionId, versions]);
 
 	// Callback for when code is patched (diff applied) - triggers typewriter animation
 	const handleCodePatched = useCallback(
@@ -208,6 +215,8 @@ function RouteComponent() {
 		chatSession?.brandId,
 		chatSession?.preset,
 		chatSession?.tone,
+		sendMessage,
+		setMessages,
 	]);
 
 	const handleExportJsx = () => {
@@ -223,6 +232,21 @@ function RouteComponent() {
 		toast.success("Exported as email-template.tsx");
 	};
 
+	const handleRollbackFromMessage = useCallback(
+		async (messageId: string) => {
+			try {
+				await rollback(messageId);
+				setSelectedVersionId(null);
+				toast.success("Rolled back successfully");
+			} catch (error) {
+				if (error instanceof Error) {
+					toast.error(error.message);
+				}
+			}
+		},
+		[rollback],
+	);
+
 	const handleSendTest = async () => {
 		const toastId = toast.loading("Sending test email...");
 		try {
@@ -233,28 +257,6 @@ function RouteComponent() {
 				toast.error(error.message, { id: toastId });
 			} else {
 				toast.error("failed to send test email", { id: toastId });
-			}
-		}
-	};
-
-	const handleRollbackFromVersionSelector = (
-		versionId: string,
-		version: number,
-	) => {
-		setPendingRollbackVersion({ versionId, version });
-		setRollbackDialogOpen(true);
-	};
-
-	const handleConfirmRollback = async () => {
-		if (!pendingRollbackVersion) return;
-
-		try {
-			await rollback(pendingRollbackVersion.versionId);
-			setRollbackDialogOpen(false);
-			setPendingRollbackVersion(null);
-		} catch (error) {
-			if (error instanceof Error) {
-				toast.error(error.message);
 			}
 		}
 	};
@@ -302,6 +304,8 @@ function RouteComponent() {
 								status={status}
 								stop={stop}
 								user={user}
+								onRollbackFromMessage={handleRollbackFromMessage}
+								selectedChatMessageId={selectedChatMessageId}
 							/>
 						</ResizablePanel>
 
@@ -326,28 +330,14 @@ function RouteComponent() {
 								isStreaming={status === "streaming"}
 								isAnimating={isAnimating}
 								versions={versions}
-								currentVersion={currentVersion}
-								onOpenRollbackDialog={handleRollbackFromVersionSelector}
+								selectedVersionId={selectedVersionId}
+								onSelectVersion={handleSelectVersion}
 								onFixError={handleFixError}
 							/>
 						</ResizablePanel>
 					</ResizablePanelGroup>
 				</motion.div>
 			</AnimatePresence>
-
-			{pendingRollbackVersion && (
-				<RollbackDialog
-					open={rollbackDialogOpen}
-					onOpenChange={setRollbackDialogOpen}
-					onConfirm={handleConfirmRollback}
-					targetVersion={pendingRollbackVersion.version}
-					messageCountToDelete={
-						versions.length > 0
-							? versions[0].version - pendingRollbackVersion.version
-							: 0
-					}
-				/>
-			)}
 		</div>
 	);
 }

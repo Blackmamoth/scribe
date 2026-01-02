@@ -33,8 +33,8 @@ interface PreviewHeaderProps {
 	previewTheme: "light" | "dark";
 	setPreviewTheme: (theme: "light" | "dark") => void;
 	versions: EmailVersion[];
-	currentVersion: number | null;
-	onOpenRollbackDialog: (versionId: string, version: number) => void;
+	selectedVersionId: string | null;
+	onSelectVersion: (versionId: string | null) => void;
 }
 
 export function PreviewHeader({
@@ -48,8 +48,8 @@ export function PreviewHeader({
 	previewTheme,
 	setPreviewTheme,
 	versions,
-	currentVersion,
-	onOpenRollbackDialog,
+	selectedVersionId,
+	onSelectVersion,
 }: PreviewHeaderProps) {
 	const handleCopy = () => {
 		onCopyHtml();
@@ -60,8 +60,8 @@ export function PreviewHeader({
 			<div className="flex items-center gap-2">
 				<VersionSelector
 					versions={versions}
-					currentVersion={currentVersion}
-					onOpenDialog={onOpenRollbackDialog}
+					selectedVersionId={selectedVersionId}
+					onSelectVersion={onSelectVersion}
 				/>
 				<div className="flex items-center rounded-lg border bg-muted/50 p-1">
 					<TooltipProvider>

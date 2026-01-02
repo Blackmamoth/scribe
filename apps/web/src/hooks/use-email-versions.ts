@@ -1,13 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { getEmailVersions, rollbackToVersion } from "@/functions/chat";
+import { getEmailVersions, rollbackToMessage } from "@/functions/chat";
 
 export type EmailVersion = {
 	id: string;
 	version: number;
 	createdAt: Date;
 	chatMessageId: string | null;
+	code?: string;
 };
 
 export function useEmailVersions(chatId: string) {
@@ -19,9 +20,9 @@ export function useEmailVersions(chatId: string) {
 	});
 
 	const rollbackMutation = useMutation({
-		mutationFn: ({ versionId }: { versionId: string }) =>
-			rollbackToVersion({
-				data: { chatId: chatId || "", versionId },
+		mutationFn: ({ messageId }: { messageId: string }) =>
+			rollbackToMessage({
+				data: { chatId: chatId || "", messageId },
 			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["email_versions", chatId] });
@@ -37,8 +38,8 @@ export function useEmailVersions(chatId: string) {
 	});
 
 	const rollback = useCallback(
-		async (versionId: string) => {
-			await rollbackMutation.mutateAsync({ versionId });
+		async (messageId: string) => {
+			await rollbackMutation.mutateAsync({ messageId });
 		},
 		[rollbackMutation],
 	);

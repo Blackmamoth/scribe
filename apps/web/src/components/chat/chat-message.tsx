@@ -1,7 +1,8 @@
 import type { ParsedScribeMessage } from "@scribe/core/ai/service/chat";
 import type { User } from "better-auth";
-import { Sparkles, User as UserIcon } from "lucide-react";
+import { RotateCcw, Sparkles, User as UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface ChatMessageProps {
@@ -12,9 +13,10 @@ interface ChatMessageProps {
 		parsed?: ParsedScribeMessage;
 	};
 	user?: User;
+	onRollback?: (messageId: string) => void;
 }
 
-export function ChatMessage({ message, user }: ChatMessageProps) {
+export function ChatMessage({ message, user, onRollback }: ChatMessageProps) {
 	const isUser = message.role === "user";
 
 	const getInitials = (name: string) => {
@@ -51,6 +53,16 @@ export function ChatMessage({ message, user }: ChatMessageProps) {
 				)}
 			</Avatar>
 			<div className="relative flex max-w-[80%] flex-col gap-1">
+				{!isUser && onRollback && (
+					<Button
+						variant="ghost"
+						size="icon-sm"
+						className="-top-3 absolute right-2 h-7 w-7 bg-muted opacity-0 transition-opacity group-hover:opacity-100"
+						onClick={() => onRollback(message.id)}
+					>
+						<RotateCcw className="h-3.5 w-3.5" />
+					</Button>
+				)}
 				<div
 					className={cn(
 						"flex flex-col gap-2 rounded-lg px-4 py-3 text-sm",

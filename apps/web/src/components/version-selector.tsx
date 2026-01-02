@@ -11,20 +11,28 @@ import type { EmailVersion } from "@/hooks/use-email-versions";
 
 interface VersionSelectorProps {
 	versions: EmailVersion[];
-	currentVersion: number | null;
-	onOpenDialog: (versionId: string, version: number) => void;
+	selectedVersionId: string | null;
+	onSelectVersion: (versionId: string | null) => void;
 	disabled?: boolean;
 }
 
 export function VersionSelector({
 	versions,
-	currentVersion,
-	onOpenDialog,
+	selectedVersionId,
+	onSelectVersion,
 	disabled = false,
 }: VersionSelectorProps) {
 	if (versions.length === 0) {
 		return null;
 	}
+
+	const selectedVersion = selectedVersionId
+		? versions.find((v) => v.id === selectedVersionId)
+		: null;
+
+	const displayText = selectedVersionId
+		? `Version ${selectedVersion?.version}`
+		: "latest";
 
 	return (
 		<DropdownMenu>
@@ -36,28 +44,25 @@ export function VersionSelector({
 					disabled={disabled}
 				>
 					<Clock className="h-4 w-4" />
-					<span>Version {currentVersion ?? versions[0]?.version}</span>
+					<span>{displayText}</span>
 					<ChevronDown className="h-3 w-3" />
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-[200px]">
+				<DropdownMenuItem
+					onClick={() => onSelectVersion(null)}
+					disabled={selectedVersionId === null}
+				>
+					<span className="font-medium">Latest</span>
+				</DropdownMenuItem>
 				{versions.map((version) => (
 					<DropdownMenuItem
 						key={version.id}
-						onClick={() =>
-							version.version !== currentVersion
-								? onOpenDialog(version.id, version.version)
-								: undefined
-						}
-						disabled={version.version === currentVersion}
+						onClick={() => onSelectVersion(version.id)}
+						disabled={version.id === selectedVersionId}
 					>
 						<div className="flex w-full flex-col gap-0.5">
-							<div className="flex items-center justify-between">
-								<span className="font-medium">Version {version.version}</span>
-								{version.version === currentVersion && (
-									<span className="text-muted-foreground text-xs">Current</span>
-								)}
-							</div>
+							<span className="font-medium">Version {version.version}</span>
 							<span className="text-muted-foreground text-xs">
 								{formatDistanceToNow(new Date(version.createdAt), {
 									addSuffix: true,
