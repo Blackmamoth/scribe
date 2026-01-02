@@ -20,7 +20,7 @@ interface DashboardChatPanelProps {
 	chatId: string;
 	generatedCode: string;
 	setGeneratedCode: (code: string) => void;
-	onCodePatched?: (oldText: string, newText: string) => void;
+	onCodePatched: (oldText: string, newText: string) => void;
 	input: string;
 	setInput: (value: string) => void;
 	selectedBrandId: string | null;
@@ -39,7 +39,7 @@ interface DashboardChatPanelProps {
 	) => void;
 	status: "submitted" | "streaming" | "error" | "ready";
 	stop: () => void;
-	user?: User;
+	user: User;
 }
 
 export function DashboardChatPanel({
@@ -121,7 +121,7 @@ export function DashboardChatPanel({
 					// Get the first change for animation
 					const firstChange = result.changes[0];
 					if (firstChange) {
-						onCodePatched?.(firstChange.oldText, firstChange.newText);
+						onCodePatched(firstChange.oldText, firstChange.newText);
 					}
 					setGeneratedCode(result.code);
 					lastProcessedMessageIdRef.current = lastMessage.id;

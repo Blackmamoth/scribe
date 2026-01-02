@@ -32,9 +32,9 @@ interface PreviewHeaderProps {
 	onSendTest: () => void;
 	previewTheme: "light" | "dark";
 	setPreviewTheme: (theme: "light" | "dark") => void;
-	versions?: EmailVersion[];
+	versions: EmailVersion[];
 	currentVersion: number | null;
-	onOpenRollbackDialog?: (versionId: string, version: number) => void;
+	onOpenRollbackDialog: (versionId: string, version: number) => void;
 }
 
 export function PreviewHeader({
@@ -58,13 +58,11 @@ export function PreviewHeader({
 	return (
 		<div className="flex items-center justify-between border-b bg-background/95 p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 			<div className="flex items-center gap-2">
-				{versions && onOpenRollbackDialog && (
-					<VersionSelector
-						versions={versions}
-						currentVersion={currentVersion}
-						onOpenDialog={onOpenRollbackDialog}
-					/>
-				)}
+				<VersionSelector
+					versions={versions}
+					currentVersion={currentVersion}
+					onOpenDialog={onOpenRollbackDialog}
+				/>
 				<div className="flex items-center rounded-lg border bg-muted/50 p-1">
 					<TooltipProvider>
 						<Tooltip>

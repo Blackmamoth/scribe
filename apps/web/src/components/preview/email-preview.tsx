@@ -24,6 +24,7 @@ interface EmailPreviewProps {
 	previewHtml: string;
 	onHtmlChange: (html: string) => void;
 	isStreaming: boolean;
+	onFixError: (error: string) => void;
 }
 
 export function EmailPreview({
@@ -33,6 +34,7 @@ export function EmailPreview({
 	previewHtml,
 	onHtmlChange,
 	isStreaming,
+	onFixError,
 }: EmailPreviewProps) {
 	const [error, setError] = useState<string | null>(null);
 	const [isGenerating, setIsGenerating] = useState(false);
@@ -112,10 +114,21 @@ export function EmailPreview({
 				)}
 
 				{error ? (
-					<div className="absolute inset-0 flex items-center justify-center bg-red-50 p-4 text-red-500">
-						<div className="max-w-md">
-							<p className="mb-2 font-medium">Preview Error</p>
-							<p className="whitespace-pre-wrap font-mono text-xs">{error}</p>
+					<div className="absolute inset-0 flex flex-col items-center justify-center bg-black p-4 text-white">
+						<div className="flex items-center gap-4">
+							<span className="font-semibold text-lg">Runtime Error</span>
+							<div className="h-8 w-px bg-white/20" />
+							<div className="flex flex-col gap-2">
+								<p className="font-medium text-sm">{error}</p>
+								<button
+									type="button"
+									onClick={() => onFixError(error)}
+									className="flex w-fit items-center gap-2 rounded border border-white/20 bg-white/10 px-3 py-1.5 hover:bg-white/20"
+								>
+									<span className="i-lucide-wand-2 text-sm" />
+									<span className="text-xs">Fix with Scribe</span>
+								</button>
+							</div>
 						</div>
 					</div>
 				) : (

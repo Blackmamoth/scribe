@@ -22,9 +22,10 @@ interface DashboardPreviewPanelProps {
 	onHtmlChange: (html: string) => void;
 	isStreaming: boolean;
 	isAnimating: boolean;
-	versions?: EmailVersion[];
+	versions: EmailVersion[];
 	currentVersion: number | null;
-	onOpenRollbackDialog?: (versionId: string, version: number) => void;
+	onOpenRollbackDialog: (versionId: string, version: number) => void;
+	onFixError: (error: string) => void;
 }
 
 export function DashboardPreviewPanel({
@@ -47,6 +48,7 @@ export function DashboardPreviewPanel({
 	versions,
 	currentVersion,
 	onOpenRollbackDialog,
+	onFixError,
 }: DashboardPreviewPanelProps) {
 	useEffect(() => {
 		if (!isFetchingLatestEmail && latestEmailCode) {
@@ -85,6 +87,7 @@ export function DashboardPreviewPanel({
 						previewHtml={previewHtml}
 						onHtmlChange={onHtmlChange}
 						isStreaming={isStreaming}
+						onFixError={onFixError}
 					/>
 					{isStreaming && (
 						<div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">

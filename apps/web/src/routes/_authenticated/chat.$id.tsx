@@ -174,7 +174,7 @@ function RouteComponent() {
 			if (chatSession.chatMessages.length === 0) {
 				const localStorageKey = `initial_prompt_${chatId}`;
 				const initialPrompt = localStorage.getItem(localStorageKey);
-				if (initialPrompt !== null && messages.length === 0) {
+				if (initialPrompt !== null) {
 					sendMessage(
 						{ text: initialPrompt },
 						{
@@ -187,8 +187,6 @@ function RouteComponent() {
 						},
 					);
 					localStorage.removeItem(localStorageKey);
-				} else if (messages.length > 0) {
-					setMessages([]);
 				}
 			} else {
 				setMessages(
@@ -202,13 +200,11 @@ function RouteComponent() {
 				);
 			}
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		chatSession?.chatMessages,
 		isFetchingChatSession,
-		sendMessage,
-		setMessages,
 		chatId,
-		messages.length,
 		chatSession?.brandId,
 		chatSession?.preset,
 		chatSession?.tone,
@@ -261,6 +257,11 @@ function RouteComponent() {
 				toast.error(error.message);
 			}
 		}
+	};
+
+	const handleFixError = (error: string) => {
+		const message = `The code returns the following error:\n\n${error}\n\nRevise the code to address the error.`;
+		sendMessage({ text: message });
 	};
 
 	if (isLoadingChatSession) {
@@ -327,6 +328,7 @@ function RouteComponent() {
 								versions={versions}
 								currentVersion={currentVersion}
 								onOpenRollbackDialog={handleRollbackFromVersionSelector}
+								onFixError={handleFixError}
 							/>
 						</ResizablePanel>
 					</ResizablePanelGroup>
