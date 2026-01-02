@@ -11,8 +11,8 @@ interface ChatListProps {
 		rawContent: string;
 		parsed?: ParsedScribeMessage;
 	}[];
-	user?: User;
-	onRollback?: (messageId: string) => void;
+	user: User;
+	onRollback: (messageId: string) => void;
 	selectedChatMessageId: string | null;
 }
 
