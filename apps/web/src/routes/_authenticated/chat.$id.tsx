@@ -189,15 +189,11 @@ function RouteComponent() {
 	]);
 
 	useEffect(() => {
-		if (
-			chatSession?.chatMessages !== undefined &&
-			!isFetchingChatSession &&
-			messages.length === 0
-		) {
+		if (chatSession?.chatMessages !== undefined && !isFetchingChatSession) {
 			if (chatSession.chatMessages.length === 0) {
 				const localStorageKey = `initial_prompt_${chatId}`;
 				const initialPrompt = localStorage.getItem(localStorageKey);
-				if (initialPrompt !== null) {
+				if (initialPrompt !== null && messages.length === 0) {
 					sendMessage(
 						{ text: initialPrompt },
 						{
@@ -210,6 +206,8 @@ function RouteComponent() {
 						},
 					);
 					localStorage.removeItem(localStorageKey);
+				} else if (messages.length > 0) {
+					setMessages([]);
 				}
 			} else {
 				setMessages(

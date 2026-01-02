@@ -5,8 +5,8 @@ import {
 	createChatSchema,
 	getRecentChatsSchema,
 } from "@scribe/core/validation";
-import { and, db, eq, gt, gte, ne } from "@scribe/db";
-import { chat, chatMessage, emailVersions } from "@scribe/db/schema/chat";
+import { and, db, eq, inArray } from "@scribe/db";
+import { chat, chatMessage } from "@scribe/db/schema/chat";
 import { createServerFn } from "@tanstack/react-start";
 import z from "zod";
 import { authMiddleware } from "@/middleware/auth";
@@ -365,41 +365,23 @@ export const rollbackToVersion = createServerFn({ method: "POST" })
 			}
 
 			await db.transaction(async (tx) => {
-				const versionStillExists = await tx.query.emailVersions.findFirst({
-					columns: { version: true },
-					where: (emailVersions, { and, eq }) =>
+				const messages = await tx.query.chatMessage.findMany({
+					columns: { id: true, role: true },
+					where: (chatMessages, { and, eq, gte }) =>
 						and(
-							eq(emailVersions.chatId, chatId),
-							eq(emailVersions.id, versionId),
+							eq(chatMessages.chatId, chatId),
+							gte(chatMessages.createdAt, targetVersion.message.createdAt),
 						),
+					orderBy: (chatMessages, { asc }) => asc(chatMessages.createdAt),
 				});
 
-				if (!versionStillExists) {
-					throw new APIError(
-						"CONFLICT",
-						"version was modified or deleted during rollback",
-					);
-				}
+				const keepCount = messages[1]?.role === "assistant" ? 2 : 1;
+				const messageIdsToDelete = messages.slice(keepCount).map((m) => m.id);
 
-				await tx
-					.delete(emailVersions)
-					.where(
-						and(
-							eq(emailVersions.chatId, chatId),
-							gt(emailVersions.version, targetVersion.version),
-						),
-					);
-
-				if (targetVersion.message) {
+				if (messageIdsToDelete.length > 0) {
 					await tx
 						.delete(chatMessage)
-						.where(
-							and(
-								eq(chatMessage.chatId, chatId),
-								gte(chatMessage.createdAt, targetVersion.message.createdAt),
-								ne(chatMessage.id, targetVersion.chatMessageId),
-							),
-						);
+						.where(inArray(chatMessage.id, messageIdsToDelete));
 				}
 			});
 
