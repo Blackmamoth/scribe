@@ -11,19 +11,10 @@ interface ChatListProps {
 		rawContent: string;
 		parsed?: ParsedScribeMessage;
 	}[];
-	onRestoreVersion?: (code: string) => void;
-	onRollbackFromMessage?: (messageId: string) => void;
-	messageVersions?: Map<string, boolean>;
 	user?: User;
 }
 
-export function ChatList({
-	messages,
-	onRestoreVersion,
-	onRollbackFromMessage,
-	messageVersions,
-	user,
-}: ChatListProps) {
+export function ChatList({ messages, user }: ChatListProps) {
 	const bottomRef = useRef<HTMLDivElement>(null);
 
 	// biome-ignore lint: this effect intentionally scrolls on every message change
@@ -40,20 +31,7 @@ export function ChatList({
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.3 }}
 				>
-					<ChatMessage
-						message={message}
-						onRestore={onRestoreVersion}
-						onRollback={
-							message.role === "user" && onRollbackFromMessage
-								? () => onRollbackFromMessage(message.id)
-								: undefined
-						}
-						showRollbackButton={
-							message.role === "user" &&
-							messageVersions?.get(message.id) === true
-						}
-						user={user}
-					/>
+					<ChatMessage message={message} user={user} />
 				</motion.div>
 			))}
 			<div ref={bottomRef} />

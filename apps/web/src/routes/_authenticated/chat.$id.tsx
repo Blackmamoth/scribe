@@ -72,25 +72,6 @@ function RouteComponent() {
 	const [animatedCode, setAnimatedCode] = useState("");
 	const animationRef = useRef<{ cancelled: boolean }>({ cancelled: false });
 
-	const messageWithVersionMap = useMemo(() => {
-		const map = new Map<string, boolean>();
-		if (!chatSession?.chatMessages || versions.length === 0) {
-			return map;
-		}
-
-		const messageIdsWithVersions = new Set(
-			versions
-				.map((v) => v.chatMessageId)
-				.filter((id): id is string => id !== null),
-		);
-
-		chatSession.chatMessages.forEach((msg) => {
-			map.set(msg.id, messageIdsWithVersions.has(msg.id));
-		});
-
-		return map;
-	}, [chatSession?.chatMessages, versions]);
-
 	const currentVersion = useMemo(() => {
 		return versions.length > 0 ? versions[0].version : null;
 	}, [versions]);
@@ -282,25 +263,6 @@ function RouteComponent() {
 		}
 	};
 
-	const handleRollbackFromMessage = (messageId: string) => {
-		const targetVersionData = versions.find(
-			(v) => v.chatMessageId === messageId,
-		);
-
-		if (!targetVersionData) {
-			toast.error("Unable to rollback", {
-				description: "No email version exists for this message",
-			});
-			return;
-		}
-
-		setPendingRollbackVersion({
-			versionId: targetVersionData.id,
-			version: targetVersionData.version,
-		});
-		setRollbackDialogOpen(true);
-	};
-
 	if (isLoadingChatSession) {
 		return <ChatPageSkeleton />;
 	}
@@ -339,8 +301,6 @@ function RouteComponent() {
 								status={status}
 								stop={stop}
 								user={user}
-								messageVersions={messageWithVersionMap}
-								onRollbackFromMessage={handleRollbackFromMessage}
 							/>
 						</ResizablePanel>
 
