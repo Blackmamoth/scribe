@@ -13,12 +13,8 @@ export default defineConfig({
 		viteReact(),
 		nitro(),
 	],
-	ssr: {
-		external: ["esbuild"],
-	},
+	ssr: {},
 	build: {
-		rollupOptions: {
-			external: ["esbuild"],
-		},
+		rollupOptions: {},
 	},
 });
