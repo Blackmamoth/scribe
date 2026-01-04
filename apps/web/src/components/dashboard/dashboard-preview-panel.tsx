@@ -13,6 +13,7 @@ interface DashboardPreviewPanelProps {
 	generatedCode: string;
 	setGeneratedCode: (code: string) => void;
 	onExportJsx: () => void;
+	onExportHtml: () => void;
 	onSendTest: () => void;
 	previewTheme: "light" | "dark";
 	setPreviewTheme: (theme: "light" | "dark") => void;
@@ -36,6 +37,7 @@ export function DashboardPreviewPanel({
 	generatedCode,
 	setGeneratedCode,
 	onExportJsx,
+	onExportHtml,
 	onSendTest,
 	previewTheme,
 	setPreviewTheme,
@@ -78,6 +80,7 @@ export function DashboardPreviewPanel({
 				setDevice={setDevice}
 				onCopyHtml={() => navigator.clipboard.writeText(generatedCode)}
 				onExportJsx={onExportJsx}
+				onExportHtml={onExportHtml}
 				onSendTest={onSendTest}
 				previewTheme={previewTheme}
 				setPreviewTheme={setPreviewTheme}

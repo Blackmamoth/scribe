@@ -232,6 +232,19 @@ function RouteComponent() {
 		toast.success("Exported as email-template.tsx");
 	};
 
+	const handleExportHtml = () => {
+		const blob = new Blob([previewHtml], { type: "text/html" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "email.html";
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+		toast.success("Exported as email.html");
+	};
+
 	const handleRollbackFromMessage = useCallback(
 		async (messageId: string) => {
 			try {
@@ -320,6 +333,7 @@ function RouteComponent() {
 								generatedCode={isAnimating ? animatedCode : generatedCode}
 								setGeneratedCode={setGeneratedCode}
 								onExportJsx={handleExportJsx}
+								onExportHtml={handleExportHtml}
 								onSendTest={handleSendTest}
 								previewTheme={previewTheme}
 								setPreviewTheme={setPreviewTheme}

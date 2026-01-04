@@ -13,6 +13,12 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
@@ -29,6 +35,7 @@ interface PreviewHeaderProps {
 	setDevice: (device: "desktop" | "tablet" | "mobile") => void;
 	onCopyHtml: () => void;
 	onExportJsx: () => void;
+	onExportHtml: () => void;
 	onSendTest: () => void;
 	previewTheme: "light" | "dark";
 	setPreviewTheme: (theme: "light" | "dark") => void;
@@ -44,6 +51,7 @@ export function PreviewHeader({
 	setDevice,
 	onCopyHtml,
 	onExportJsx,
+	onExportHtml,
 	onSendTest,
 	previewTheme,
 	setPreviewTheme,
@@ -191,15 +199,24 @@ export function PreviewHeader({
 					Copy
 				</Button>
 
-				<Button
-					variant="outline"
-					size="sm"
-					className="h-8 text-xs"
-					onClick={onExportJsx}
-				>
-					<Download className="mr-1.5 h-3.5 w-3.5" />
-					Export
-				</Button>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" size="sm" className="h-8 text-xs">
+							<Download className="mr-1.5 h-3.5 w-3.5" />
+							Export
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						<DropdownMenuItem onClick={onExportHtml}>
+							<Code2 className="mr-2 h-4 w-4" />
+							Export HTML
+						</DropdownMenuItem>
+						<DropdownMenuItem onClick={onExportJsx}>
+							<Download className="mr-2 h-4 w-4" />
+							Export React
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 
 				<Button size="sm" className="h-8 text-xs" onClick={onSendTest}>
 					<Send className="mr-1.5 h-3.5 w-3.5" />
